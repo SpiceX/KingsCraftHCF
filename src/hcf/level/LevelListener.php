@@ -60,25 +60,15 @@ class LevelListener implements Listener
     {
         $blockClicked = $event->getBlock();
         $item = $event->getItem();
-        $blockReplace = $blockClicked->getSide($blockClicked->getDamage() ^ 0x01);
-        /*if ($item->getId() === Item::ENDER_PEARL && $blockClicked->getId() === Block::FENCE_GATE) {
-            $blockClicked->setDamage(1);
-            $item->onActivate($event->getPlayer(), $blockReplace, $blockClicked, $event->getFace(), $event->getTouchVector());
-            $event->setCancelled(true);
-        }*/
+        if ($event->getPlayer()->hasEffect(28)){
+            $event->setCancelled();
+            return;
+        }
         if ($item->getId() === Item::ENDER_PEARL && $blockClicked->getId() === Block::FENCE_GATE) {
             $event->setCancelled(true);
         }
     }
 
-    /**
-     * @param ProjectileLaunchEvent $event
-     */
-    public function onProjectileLaunch(ProjectileLaunchEvent $event): void
-    {
-        $entity = $event->getEntity();
-        
-    }
 
     /**
      * @param BlockUpdateEvent $event
@@ -105,6 +95,10 @@ class LevelListener implements Listener
         }
         $block = $event->getBlock();
         $player = $event->getPlayer();
+        if ($player->hasEffect(28)){
+            $event->setCancelled();
+            return;
+        }
         if ($block->getId() !== Block::BEACON) {
             return;
         }
@@ -136,6 +130,10 @@ class LevelListener implements Listener
             return;
         }
         $player = $event->getPlayer();
+        if ($player->hasEffect(28)){
+            $event->setCancelled();
+            return;
+        }
         if ($block->getId() === Block::STONE) {
             if (random_int(1, 5000) === random_int(1, 5000)) {
                 HCF::getInstance()->getScheduler()->scheduleDelayedTask(new class($player, $block) extends Task {

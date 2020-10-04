@@ -16,6 +16,8 @@ use hcf\level\tile\MobSpawner;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
 use pocketmine\block\Block;
+use pocketmine\entity\Effect;
+use pocketmine\entity\EffectInstance;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Living;
 use pocketmine\event\block\BlockBreakEvent;
@@ -27,12 +29,12 @@ use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\EnderPearl;
 use pocketmine\item\Item;
 use pocketmine\item\Pickaxe;
-use pocketmine\item\Snowball;
 use pocketmine\level\particle\SmokeParticle;
 use pocketmine\level\sound\AnvilBreakSound;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\IntTag;
 use pocketmine\network\mcpe\protocol\AnimatePacket;
+use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 use ReflectionException;
 
@@ -89,6 +91,22 @@ class ItemListener implements Listener
             $player->getInventory()->setItemInHand($item);
             return;
         }
+        if ($item instanceof AntiTrapper && $player->hasAntiTrapperCooldown) {
+            $event->setCancelled();
+        }
+        if ($item instanceof EdibleNetherStar && $player->hasStarCooldown) {
+            $event->setCancelled();
+        }
+        if ($item instanceof Fireworks && $player->hasFireworksCooldown) {
+            $event->setCancelled();
+        }
+        if ($item instanceof InvisibilitySak && $player->hasInvisibilitySakCooldown) {
+            $event->setCancelled();
+        }
+        if ($item instanceof TeleportationBall && $player->hasTeleportationBallCooldown) {
+            $event->setCancelled();
+        }
+
         if ($event->isCancelled()) {
             return;
         }
@@ -331,6 +349,7 @@ class ItemListener implements Listener
             }
         }
     }
+
 
     /**
      * @priority HIGHEST

@@ -29,7 +29,7 @@ class UpdateTask extends Task {
     public function onRun(int $currentTick): void {
         foreach($this->core->getServer()->getOnlinePlayers() as $player) {
             if(!$player instanceof HCFPlayer) {
-                return;
+                continue;
             }
             $this->core->getUpdateManager()->updateScoreboard($player);
             $this->core->getUpdateManager()->updateBossbar($player);

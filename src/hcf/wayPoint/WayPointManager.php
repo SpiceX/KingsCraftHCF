@@ -17,6 +17,14 @@ class WayPointManager {
      */
     public function __construct(HCF $core) {
         $this->core = $core;
-        $core->getScheduler()->scheduleRepeatingTask(new WayPointMoveTask(), 10);
+        //$core->getScheduler()->scheduleRepeatingTask(new WayPointMoveTask(), 10);
+    }
+
+    /**
+     * @return HCF
+     */
+    public function getCore(): HCF
+    {
+        return $this->core;
     }
 }

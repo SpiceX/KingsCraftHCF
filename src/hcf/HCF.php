@@ -28,6 +28,7 @@ use hcf\util\CpsCounter;
 use hcf\watchdog\WatchdogManager;
 use hcf\wayPoint\WayPointManager;
 use muqsit\invmenu\InvMenuHandler;
+use pocketmine\entity\Effect;
 use pocketmine\inventory\Inventory;
 use pocketmine\item\Item;
 use pocketmine\nbt\BigEndianNBTStream;
@@ -35,6 +36,7 @@ use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\ListTag;
 use pocketmine\plugin\PluginBase;
 use pocketmine\plugin\PluginException;
+use pocketmine\utils\Color;
 use pocketmine\utils\TextFormat as TF;
 use ReflectionException;
 
@@ -166,6 +168,7 @@ class HCF extends PluginBase
         $this->wayPointManager = new WayPointManager($this);
         $this->getServer()->getPluginManager()->registerEvents(new HCFListener($this), $this);
         $this->getServer()->getPluginManager()->registerEvents(new Logger($this), $this);
+        Effect::registerEffect(new Effect(28,'%potion.badOmen',new Color(0xce, 0xff, 0xff),true,120000, false));
     }
 
     public function onDisable(): void

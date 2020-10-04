@@ -13,7 +13,6 @@ use pocketmine\entity\object\ExperienceOrb;
 use pocketmine\entity\object\ItemEntity;
 use pocketmine\entity\object\PrimedTNT;
 use pocketmine\event\block\BlockBreakEvent;
-use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\block\SignChangeEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
@@ -407,20 +406,6 @@ class HCFListener implements Listener
     }
 
     /**
-     * @param BlockPlaceEvent $event
-     */
-    public function onBlockPlace(BlockPlaceEvent $event): void
-    {
-        /** @var HCFPlayer $player */
-        $player = $event->getPlayer();
-        if (!(time() > $player->antiTrapperCooldown)){
-            $event->setCancelled(true);
-        } else {
-            $player->antiTrapperCooldown = 0;
-        }
-    }
-
-    /**
      * @priority NORMAL
      * @param PlayerInteractEvent $event
      *
@@ -433,10 +418,9 @@ class HCFListener implements Listener
         $block = $event->getBlock();
         /** @var HCFPlayer $player */
         $player = $event->getPlayer();
-        if (!(time() > $player->antiTrapperCooldown)){
-            $event->setCancelled(true);
-        } else {
-            $player->antiTrapperCooldown = 0;
+        if ($player->hasEffect(28)){
+            $event->setCancelled();
+            return;
         }
         if ($item->getId() === Item::EXPERIENCE_BOTTLE) {
             $player->getInventory()->setItemInHand($item->setCount($item->getCount() - 1));
@@ -500,14 +484,13 @@ class HCFListener implements Listener
         }
         /** @var HCFPlayer $player */
         $player = $event->getPlayer();
+        if ($player->hasEffect(28)){
+            $event->setCancelled();
+            return;
+        }
         $block = $event->getBlock();
         $player->addXp($event->getXpDropAmount() * 1.5);
         $event->setXpDropAmount(0);
-        if (!(time() > $player->antiTrapperCooldown)){
-            $event->setCancelled(true);
-        } else {
-            $player->antiTrapperCooldown = 0;
-        }
         if (($block->getId() === Block::DIAMOND_ORE) && !isset($this->blocks[(string)$block->asVector3()])) {
             $count = 0;
             for ($x = $block->getX() - 4; $x <= $block->getX() + 4; $x++) {

@@ -33,11 +33,10 @@ class AreaListener implements Listener {
      * @priority HIGH
      * @param PlayerInteractEvent $event
      *
-     * @throws  TranslationException
      */
     public function onPlayerInteract(PlayerInteractEvent $event): void {
         $player = $event->getPlayer();
-        if((!$player instanceof HCFPlayer) or $player->isOp()) {
+        if((!$player instanceof HCFPlayer) || $player->isOp()) {
             return;
         }
         $block = $event->getBlock();

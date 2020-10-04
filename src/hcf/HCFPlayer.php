@@ -38,14 +38,11 @@ class HCFPlayer extends Player {
     /** @var int */
     public $cps = 0;
 
-    /** @var int */
-    public $antiTrapperCooldown = 0;
+    /** @var bool */
+    public $antiTrapperCooldown = false;
 
-    /** @var int */
-    public $lumberAxeCount = 0;
-
-    /** @var int */
-    public $antiTrapperCount = 0;
+    /** @var bool */
+    public $hasAntiTrapperEffect = false;
 
     /** @var null|GrapplingHook */
     private $grapplingHook;
@@ -166,10 +163,21 @@ class HCFPlayer extends Player {
 
     /** @var bool */
     private $showWayPoint = true;
-    /**
-     * @var int|mixed
-     */
-    private $teleportationBallTime = 0;
+
+    /** @var bool */
+    public $hasStarCooldown = false;
+
+    /** @var bool */
+    public $hasAntiTrapperCooldown = false;
+
+    /** @var bool */
+    public $hasFireworksCooldown = false;
+
+    /** @var bool */
+    public $hasInvisibilitySakCooldown = false;
+
+    /** @var bool */
+    public $hasTeleportationBallCooldown = false;
 
     /**
      * @return GrapplingHook|null
@@ -238,20 +246,6 @@ class HCFPlayer extends Player {
      */
     public function setEnderPearlTime(int $time): void {
         $this->enderPearlTime = $time ?? time();
-    }
-
-    /**
-     * @return int
-     */
-    public function getTeleportationBallTime(): int {
-        return $this->teleportationBallTime;
-    }
-
-    /**
-     * @param int|null $time
-     */
-    public function setTeleportationBallTime(int $time): void {
-        $this->teleportationBallTime = $time ?? time();
     }
 
     /**

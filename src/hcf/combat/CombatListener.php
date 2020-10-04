@@ -6,11 +6,16 @@ use hcf\combat\entity\LogoutVillager;
 use hcf\groups\Group;
 use hcf\HCF;
 use hcf\HCFPlayer;
+use hcf\item\AntiTrapper;
+use hcf\item\CustomItem;
 use hcf\kit\task\SetClassTask;
+use hcf\task\SpecialItemCooldown;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
 use hcf\util\Padding;
 use pocketmine\block\Slab;
+use pocketmine\entity\Effect;
+use pocketmine\entity\EffectInstance;
 use pocketmine\entity\Entity;
 use pocketmine\entity\projectile\EnderPearl;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
@@ -27,6 +32,8 @@ use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\item\Item;
 use pocketmine\level\Position;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\Player;
 use pocketmine\scheduler\Task;
 use pocketmine\utils\TextFormat;
 
@@ -346,6 +353,63 @@ class CombatListener implements Listener
         }
     }
 
+    public function onEntityDamageByEntity(EntityDamageByEntityEvent $event): void
+    {
+        $damager = $event->getDamager();
+        $victim = $event->getEntity();
+        if (!$damager instanceof HCFPlayer || !$victim instanceof Player) {
+            return;
+        }
+        $item = $damager->getInventory()->getItemInHand();
+        $tag = $item->getNamedTagEntry(CustomItem::CUSTOM);
+        if ($tag === null) {
+            return;
+        }
+        if ($tag instanceof CompoundTag) {
+            if ($item->getId() === Item::BONE && $damager->getLevel()->getFolderName() === "wild") {
+                if ($damager->hasAntiTrapperCooldown){
+                    $damager->sendMessage("§cYour AntiTrapper is on cooldown.");
+                    return;
+                }
+                $count = $tag->getInt(AntiTrapper::HIT_COUNT);
+                $firstHit = $tag->getInt(AntiTrapper::FIRST_HIT_TIME);
+                $uses = $tag->getInt(AntiTrapper::USES);
+
+                if ($uses === 0) {
+                    $damager->getInventory()->setItemInHand(Item::get(Item::AIR));
+                } else {
+                    ++$count;
+                    $tag->setInt(AntiTrapper::HIT_COUNT, $count);
+                    if ($firstHit === 0) {
+                        $tag->setInt(AntiTrapper::FIRST_HIT_TIME, time());
+                    }
+                    $tag->setInt(AntiTrapper::LAST_HIT_TIME, time());
+                    if ($count >= 3) {
+                        $tag->setInt(AntiTrapper::USES, --$uses);
+                        $tag->setInt(AntiTrapper::FIRST_HIT_TIME, 0);
+                        $tag->setInt(AntiTrapper::HIT_COUNT, 0);
+                        $damager->sendMessage("§6You have trapped your opponent!");
+                        $this->core->getScheduler()->scheduleRepeatingTask(new SpecialItemCooldown($damager, 'AntiTrapper'), 20);
+                        $victim->addEffect(new EffectInstance(Effect::getEffect(28), 300));
+                        $victim->sendTitle("§cTrapped");
+                        $victim->sendMessage("§c> Trapped, §7You will not be able to place, break or open blocks for 15 seconds.");
+                    }
+                    $tag->setInt(AntiTrapper::USES, $uses);
+                    $lore = [];
+                    $lore[] = "";
+                    $lore[] = TextFormat::RESET . TextFormat::GRAY . "Hit a player 3 times in a row with the bone and he won’t be able to place,";
+                    $lore[] = TextFormat::RESET . TextFormat::GRAY . "break, or open any blocks for a total time of 15 seconds.";
+                    $lore[] = "";
+                    $lore[] = TextFormat::RESET . TextFormat::AQUA . "AntiTrapper Uses: " . TextFormat::WHITE . $uses;
+                    $item->setLore($lore);
+                    $damager->getInventory()->setItemInHand($item);
+                }
+
+
+            }
+        }
+    }
+
     /**
      * @priority HIGHEST
      * @param EntityDamageEvent $event
@@ -362,7 +426,7 @@ class CombatListener implements Listener
             $damager = $event->getDamager();
             if ($damager instanceof HCFPlayer) {
                 $damager->getBossBar()->update(Padding::centerText(
-                    $this->core->getConfig()->get('bossbar_title', "§l§b» §9Kings§fHCF §b«". "\n\n§r") .
+                    $this->core->getConfig()->get('bossbar_title', "§l§b» §9Kings§fHCF §b«" . "\n\n§r") .
                     "§fName: §9" . $damager->getName() . "  " .
                     "§fCPS: §9" . $this->core->getCpsCounter()->getCps($damager) . "  " .
                     "§fPing: §9" . $damager->getPing() . "  " .

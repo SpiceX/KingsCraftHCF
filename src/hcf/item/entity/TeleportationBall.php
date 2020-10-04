@@ -22,7 +22,6 @@ class TeleportationBall extends Snowball {
             $player = $this->getOwningEntity();
             if($player instanceof HCFPlayer && $entityHit instanceof HCFPlayer) {
                 if($player->distance($entityHit) <= 7) {
-                    $player->setTeleportationBallTime(time() - 10);
                     $position = $player->asPosition();
                     $player->teleport($entityHit);
                     $entityHit->teleport($position);
