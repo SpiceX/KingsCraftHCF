@@ -1,0 +1,7 @@
+name: KingsCraftHCF
+main: hcf\HCF
+load: POSTWORLD
+version: 1.0.0-beta
+api: 3.0.0
+author: "LiTEK"
+description: A hardcoded hcf core for kings craft.
