@@ -5,6 +5,7 @@ namespace hcf\item;
 use hcf\HCF;
 use hcf\HCFPlayer;
 use hcf\task\InvisibilityTask;
+use hcf\task\SpecialItemCooldown;
 use hcf\util\Utils;
 use pocketmine\entity\Effect;
 use pocketmine\entity\EffectInstance;
@@ -52,6 +53,10 @@ class InvisibilitySak extends Food
     public function onConsume(Living $consumer): void
     {
         if ($consumer instanceof HCFPlayer) {
+            if ($consumer->hasInvisibilitySakCooldown){
+                $consumer->sendMessage("§cThis item is on cooldown.");
+                return;
+            }
             $consumer->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_EATING, true);
             $consumer->getLevel()->broadcastLevelSoundEvent($consumer->asVector3(), LevelSoundEventPacket::SOUND_EAT);
             HCF::getInstance()->getScheduler()->scheduleRepeatingTask(new InvisibilityTask($consumer), 20);
@@ -60,6 +65,7 @@ class InvisibilitySak extends Food
                 $consumer->getLevel()->addParticle(new InkParticle($consumer->getLocation()->add($vector->x, $vector->y, $vector->z)));
                 $consumer->getLocation()->add($vector->x, $vector->y, $vector->z);
             }
+            HCF::getInstance()->getScheduler()->scheduleRepeatingTask(new SpecialItemCooldown($consumer, 'InvisibilitySak'), 20);
         }
     }
 

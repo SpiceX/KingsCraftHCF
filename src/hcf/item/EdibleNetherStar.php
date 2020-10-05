@@ -3,7 +3,9 @@
 namespace hcf\item;
 
 use Exception;
+use hcf\HCF;
 use hcf\HCFPlayer;
+use hcf\task\SpecialItemCooldown;
 use hcf\util\Utils;
 use pocketmine\entity\Effect;
 use pocketmine\entity\EffectInstance;
@@ -45,6 +47,10 @@ class EdibleNetherStar extends Food
     public function onConsume(Living $consumer): void
     {
         if ($consumer instanceof HCFPlayer){
+            if ($consumer->hasStarCooldown){
+                $consumer->sendMessage("§cThis item is on cooldown.");
+                return;
+            }
             $consumer->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_EATING, true);
             $consumer->getLevel()->broadcastLevelSoundEvent($consumer->asVector3(), LevelSoundEventPacket::SOUND_EAT);
             for ($i = 0; $i < 150; ++$i) {
@@ -52,6 +58,7 @@ class EdibleNetherStar extends Food
                 $consumer->getLevel()->addParticle(new RedstoneParticle($consumer->getLocation()->add($vector->x, $vector->y, $vector->z)));
                 $consumer->getLocation()->add($vector->x, $vector->y, $vector->z);
             }
+            HCF::getInstance()->getScheduler()->scheduleRepeatingTask(new SpecialItemCooldown($consumer, 'NetherStar'), 20);
         }
     }
 

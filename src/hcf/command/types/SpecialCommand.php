@@ -81,7 +81,8 @@ class SpecialCommand extends Command
                         $item->setCount($args[2] ?? 1);
                         break;
                     default:
-                        $sender->sendMessage("Special Items: lumber, live, sak, swift, crowbar, grappling, fireworks, star, snowball, bone");
+                        $sender->sendMessage("§cInvalid special item!");
+                        $sender->sendMessage("§eSpecial Items: lumber, live, sak, swift, crowbar, grappling, fireworks, star, snowball, bone");
                 }
                 if ($item !== null) {
                     $sender->getInventory()->addItem($item);

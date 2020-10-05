@@ -16,8 +16,6 @@ use hcf\level\tile\MobSpawner;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
 use pocketmine\block\Block;
-use pocketmine\entity\Effect;
-use pocketmine\entity\EffectInstance;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Living;
 use pocketmine\event\block\BlockBreakEvent;
@@ -34,7 +32,6 @@ use pocketmine\level\sound\AnvilBreakSound;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\IntTag;
 use pocketmine\network\mcpe\protocol\AnimatePacket;
-use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 use ReflectionException;
 

@@ -2,7 +2,9 @@
 
 namespace hcf\item\entity;
 
+use hcf\HCF;
 use hcf\HCFPlayer;
+use hcf\task\SpecialItemCooldown;
 use pocketmine\entity\projectile\Snowball;
 use pocketmine\event\entity\ProjectileHitEntityEvent;
 use pocketmine\event\entity\ProjectileHitEvent;
@@ -21,7 +23,11 @@ class TeleportationBall extends Snowball {
             $entityHit = $event->getEntityHit();
             $player = $this->getOwningEntity();
             if($player instanceof HCFPlayer && $entityHit instanceof HCFPlayer) {
+                if ($player->hasTeleportationBallCooldown){
+                    return;
+                }
                 if($player->distance($entityHit) <= 7) {
+                    HCF::getInstance()->getScheduler()->scheduleRepeatingTask(new SpecialItemCooldown($player, 'TeleportationBall'), 20);
                     $position = $player->asPosition();
                     $player->teleport($entityHit);
                     $entityHit->teleport($position);

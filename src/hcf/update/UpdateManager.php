@@ -142,10 +142,6 @@ class UpdateManager
                     $seconds = "0$seconds";
                 }
                 $scoreboard->setScoreLine(9, TextFormat::DARK_RED . " SOTW: " . TextFormat::RESET . TextFormat::WHITE . "$minutes:$seconds");
-            } else {
-                if ($scoreboard->getLine(10) !== null) {
-                    $scoreboard->removeLine(10);
-                }
             }
             $scoreboard->setScoreLine(2, TextFormat::BLUE . " Direction: " . TextFormat::RESET . TextFormat::WHITE . Utils::getCompassDirection($player->getYaw() - 90));
         }

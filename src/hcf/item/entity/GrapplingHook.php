@@ -137,7 +137,7 @@ class GrapplingHook extends Projectile
     public function handleHookRetraction(): void
     {
         $owner = $this->getOwningEntity();
-        $owner->setMotion($this->subtract($owner)->multiply(0.2));
+        $owner->setMotion($owner->getDirectionVector()->multiply(1.5));
     }
 
     public function applyGravity(): void

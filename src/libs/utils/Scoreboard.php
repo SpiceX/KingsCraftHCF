@@ -138,4 +138,12 @@ class Scoreboard {
     public function getLine(int $line): ?string {
         return isset($this->lines[$line]) ? $line : null;
     }
+
+    /**
+     * @return string[]
+     */
+    public function getLines(): array
+    {
+        return $this->lines;
+    }
 }

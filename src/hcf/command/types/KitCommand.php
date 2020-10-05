@@ -42,7 +42,7 @@ class KitCommand extends Command
         }
         if (!isset($args[0])) {
             $menu = InvMenu::create(InvMenu::TYPE_CHEST);
-            $menu->setName("Kits");
+            $menu->setName("§9Kings§fHCF §7Kits");
             $menu->readonly(true);
             foreach (HCF::getInstance()->getKitManager()->getKits() as $kit) {
                 $menu->getInventory()->addItem((Item::get(Item::CHEST_MINECART)->setCustomName($kit->getName())));

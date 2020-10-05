@@ -5,7 +5,6 @@ namespace hcf;
 use Exception;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
-use hcf\util\Utils;
 use pocketmine\block\Block;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Living;
@@ -32,7 +31,6 @@ use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
-use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\item\Item;
 use pocketmine\level\Level;
 use pocketmine\level\particle\Particle;
@@ -40,12 +38,10 @@ use pocketmine\level\Position;
 use pocketmine\level\sound\EndermanTeleportSound;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\ActorEventPacket;
-use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
 use pocketmine\network\mcpe\protocol\ChangeDimensionPacket;
 use pocketmine\network\mcpe\protocol\GameRulesChangedPacket;
 use pocketmine\network\mcpe\protocol\LevelEventPacket;
 use pocketmine\network\mcpe\protocol\PlayStatusPacket;
-use pocketmine\network\mcpe\protocol\TextPacket;
 use pocketmine\network\mcpe\protocol\types\DimensionIds;
 use pocketmine\scheduler\Task;
 use pocketmine\tile\Sign;
@@ -295,31 +291,6 @@ class HCFListener implements Listener
             "amount" => TextFormat::RED . $seconds
         ]));
         $event->setCancelled();*/
-    }
-
-    /**
-     * @priority HIGHEST
-     *
-     * @param DataPacketSendEvent $event
-     */
-    public function onDataPacketSendEvent(DataPacketSendEvent $event): void
-    {
-        $pk = $event->getPacket();
-        if ($pk instanceof TextPacket) {
-            if ($pk->type === TextPacket::TYPE_TIP || $pk->type === TextPacket::TYPE_POPUP || $pk->type === TextPacket::TYPE_JUKEBOX_POPUP) {
-                return;
-            }
-
-            if ($pk->type === TextPacket::TYPE_TRANSLATION) {
-                $pk->message = Utils::toThin($pk->message);
-            } else {
-                $pk->message .= Utils::THIN_TAG;
-            }
-        } elseif ($pk instanceof AvailableCommandsPacket) {
-            foreach ($pk->commandData as $name => $commandData) {
-                $commandData->commandDescription = Utils::toThin($commandData->commandDescription);
-            }
-        }
     }
 
     /**

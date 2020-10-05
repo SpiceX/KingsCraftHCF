@@ -3,6 +3,9 @@
 namespace hcf\item;
 
 use Exception;
+use hcf\HCF;
+use hcf\HCFPlayer;
+use hcf\task\SpecialItemCooldown;
 use pocketmine\block\Block;
 use pocketmine\entity\Entity;
 use pocketmine\item\Item;
@@ -88,9 +91,16 @@ class Fireworks extends Item {
     }
 
     public function onActivate(Player $player, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector): bool {
-        $nbt = Entity::createBaseNBT($blockReplace->add(0.5, 0, 0.5), new Vector3(0.001, 0.05, 0.001), lcg_value() * 360, 90);
+        if ($player instanceof HCFPlayer){
+            if ($player->hasFireworksCooldown){
+                $player->sendMessage("§cThis item is on cooldown.");
+                return false;
+            }
+        }
 
+        $nbt = Entity::createBaseNBT($blockReplace->add(0.5, 0, 0.5), new Vector3(0.001, 0.05, 0.001), lcg_value() * 360, 90);
         $entity = Entity::createEntity("FireworksRocket", $player->getLevel(), $nbt, $this);
+        HCF::getInstance()->getScheduler()->scheduleRepeatingTask(new SpecialItemCooldown($player, 'Fireworks'), 20);
 
         if($entity instanceof Entity) {
             --$this->count;
