@@ -75,7 +75,6 @@ class ReclaimCommand extends Command {
         $sender->getServer()->broadcastMessage(Translation::getMessage("reclaim", [
             "name" => TextFormat::GREEN . $sender->getName(),
             "rank" => $sender->getGroup()->getColoredName()
-
         ]));
         $sender->sendMessage(Translation::getMessage("lives", [
             "amount" => TextFormat::GREEN . $sender->getLives()

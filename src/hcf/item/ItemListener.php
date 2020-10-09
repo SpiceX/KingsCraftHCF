@@ -7,7 +7,9 @@ use hcf\faction\Claim;
 use hcf\faction\Faction;
 use hcf\HCF;
 use hcf\HCFPlayer;
+use hcf\item\armor\INetheriteArmor;
 use hcf\item\entity\GrapplingHook;
+use hcf\item\tool\INetheriteTool;
 use hcf\item\types\Crowbar;
 use hcf\item\types\TeleportationBall;
 use hcf\level\block\EndPortalFrame;
@@ -18,9 +20,13 @@ use hcf\translation\TranslationException;
 use pocketmine\block\Block;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Living;
+use pocketmine\entity\object\ItemEntity;
 use pocketmine\event\block\BlockBreakEvent;
+use pocketmine\event\entity\EntityCombustByBlockEvent;
+use pocketmine\event\entity\EntityDamageByBlockEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\entity\ItemDespawnEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\item\enchantment\Enchantment;
@@ -357,6 +363,59 @@ class ItemListener implements Listener
                     }
                 }
                 $player->broadcastEntityEvent(AnimatePacket::ACTION_SWING_ARM);
+            }
+        }
+    }
+
+    /**
+     * @param EntityCombustByBlockEvent $event
+     */
+    public function onEntityCombustByBlock(EntityCombustByBlockEvent $event): void
+    {
+        $entity = $event->getEntity();
+        if ($entity instanceof ItemEntity) {
+            if ($entity->getItem() instanceof INetheriteTool || $entity->getItem() instanceof INetheriteArmor) {
+                $event->setCancelled();
+                if ($entity->isOnFire()) {
+                    $entity->extinguish();
+                }
+                $entity->setGenericFlag(Entity::DATA_FLAG_FIRE_IMMUNE, true);
+                $entity->setFireTicks(0);
+                $blockUnderEntity = $entity->getLevel()->getBlock($entity->asVector3());
+                if ($blockUnderEntity->getId() === Block::LAVA || $blockUnderEntity->getId() === Block::STILL_LAVA) {
+                    $entity->teleport($entity->asVector3()->add(0, 0.02, 0));
+                }
+            }
+        }
+    }
+
+    /**
+     * @param ItemDespawnEvent $event
+     */
+    public function onItemDespawn(ItemDespawnEvent $event): void
+    {
+        $entity = $event->getEntity();
+        if ($entity->getItem() instanceof INetheriteTool || $entity->getItem() instanceof INetheriteArmor) {
+            $event->setCancelled(true);
+        }
+    }
+
+    /**
+     * @param EntityDamageByBlockEvent $event
+     */
+    public function onBlockDamage(EntityDamageByBlockEvent $event): void
+    {
+        $entity = $event->getEntity();
+        if ($entity->getItem() instanceof INetheriteTool || $entity->getItem() instanceof INetheriteArmor) {
+            $event->setCancelled();
+            if ($entity->isOnFire()) {
+                $entity->extinguish();
+            }
+            $entity->setGenericFlag(Entity::DATA_FLAG_FIRE_IMMUNE, true);
+            $entity->setFireTicks(0);
+            $blockUnderEntity = $entity->getLevel()->getBlock($entity->asVector3());
+            if ($blockUnderEntity->getId() === Block::LAVA || $blockUnderEntity->getId() === Block::STILL_LAVA) {
+                $entity->teleport($entity->asVector3()->add(0, 0.02, 0));
             }
         }
     }

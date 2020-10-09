@@ -3,11 +3,20 @@
 namespace hcf\item;
 
 use hcf\HCF;
+use hcf\item\armor\NetheriteBoots;
+use hcf\item\armor\NetheriteChestplate;
+use hcf\item\armor\NetheriteHelmet;
+use hcf\item\armor\NetheriteLeggings;
 use hcf\item\entity\Egg;
 use hcf\item\entity\EnderPearl;
 use hcf\item\entity\FireworksRocket;
 use hcf\item\entity\FishingHook;
 use hcf\item\entity\GrapplingHook;
+use hcf\item\tool\NetheriteAxe;
+use hcf\item\tool\NetheriteHoe;
+use hcf\item\tool\NetheritePickaxe;
+use hcf\item\tool\NetheriteShovel;
+use hcf\item\tool\NetheriteSword;
 use hcf\item\types\GlassBottle;
 use hcf\item\types\SplashPotion;
 use hcf\item\types\TeleportationBall;
@@ -103,6 +112,15 @@ class ItemManager {
         ItemFactory::registerItem(new FishingRod(), true);
         ItemFactory::registerItem(new LumberAxe(), true);
         ItemFactory::registerItem(new EdibleNetherStar(), true);
+        ItemFactory::registerItem(new NetheriteBoots(), true);
+        ItemFactory::registerItem(new NetheriteLeggings(), true);
+        ItemFactory::registerItem(new NetheriteChestplate(), true);
+        ItemFactory::registerItem(new NetheriteHelmet(), true);
+        ItemFactory::registerItem(new NetheriteAxe(), true);
+        ItemFactory::registerItem(new NetheriteHoe(), true);
+        ItemFactory::registerItem(new NetheritePickaxe(), true);
+        ItemFactory::registerItem(new NetheriteShovel(), true);
+        //ItemFactory::registerItem(new NetheriteSword(), true);
         //ItemFactory::registerItem(new \hcf\item\EnderPearl(), true);
         Item::initCreativeItems(); //will load firework rockets from pocketmine's resources folder
         if(!Entity::registerEntity(FireworksRocket::class, false, ["FireworksRocket"])) {
