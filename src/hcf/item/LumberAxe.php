@@ -2,27 +2,38 @@
 
 namespace hcf\item;
 
-use hcf\HCFPlayer;
 use pocketmine\block\Block;
 use pocketmine\block\BlockToolType;
-use pocketmine\entity\Entity;
-use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\Item;
 use pocketmine\item\TieredTool;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\utils\TextFormat;
 
 class LumberAxe extends TieredTool
 {
+    public const HIT_COUNT = "HitCount";
+
+    /** @var CompoundTag */
+    private $customCompound;
+    /** @var CompoundTag */
+    private $namedTagEntry;
 
     public function __construct()
     {
         parent::__construct(Item::IRON_AXE, 0, "Iron Axe", self::TIER_IRON);
+        $this->customCompound = new CompoundTag(CustomItem::CUSTOM);
         $this->getNamedTag()->setString("SpecialFeature", "LumberAxe");
         $customName = TextFormat::RESET . TextFormat::AQUA . TextFormat::BOLD . "Lumber Axe";
         $lore = [];
         $lore[] = "";
         $lore[] = TextFormat::RESET . TextFormat::GRAY . "Hit a player 3 times in a row with the axe,";
         $lore[] = TextFormat::RESET . TextFormat::GRAY . "and it'll break the enemy's helmet.";
+        $this->setNamedTagEntry($this->customCompound);
+        /** @var CompoundTag $tag */
+        $this->namedTagEntry = $this->getNamedTagEntry(CustomItem::CUSTOM);
+        if ($this->namedTagEntry instanceof CompoundTag) {
+            $this->namedTagEntry->setInt(self::HIT_COUNT, 0);
+        }
         $this->setCustomName($customName);
         $this->setLore($lore);
     }
@@ -50,16 +61,19 @@ class LumberAxe extends TieredTool
         return false;
     }
 
-    public function onAttackEntity(Entity $victim): bool
+    /**
+     * @return CompoundTag
+     */
+    public function getCustomCompound(): CompoundTag
     {
-        if (($victim instanceof HCFPlayer) && $this->getName() === "Iron Axe" && $this->hasEnchantment(Enchantment::BANE_OF_ARTHROPODS)) {
-            $armorInventory = $victim->getArmorInventory();
-            $victim->lumberAxeCount++;
-            if ($victim->lumberAxeCount >= 3) {
-                $armorInventory->setHelmet(Item::get(Item::AIR));
-                $victim->lumberAxeCount = 0;
-            }
-        }
-        return $this->applyDamage(2);
+        return $this->customCompound;
+    }
+
+    /**
+     * @return CompoundTag
+     */
+    public function getCustomNamedTagEntry(): CompoundTag
+    {
+        return $this->namedTagEntry;
     }
 }

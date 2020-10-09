@@ -10,12 +10,12 @@ use hcf\kit\types\BuilderKit;
 use hcf\kit\types\CustomKit;
 use hcf\kit\types\DiamondKit;
 use hcf\kit\types\FoodKit;
-use hcf\kit\types\KingHeroKit;
+use hcf\kit\types\KingLegendKit;
 use hcf\kit\types\LegendKit;
 use hcf\kit\types\MinerKit;
 use hcf\kit\types\RevenantKit;
 use hcf\kit\types\RogueKit;
-use hcf\kit\types\StarterKIt;
+use hcf\kit\types\StarterKit;
 use pocketmine\Player;
 
 class KitManager
@@ -44,7 +44,7 @@ class KitManager
         $this->registerKit(new FoodKit());
         $this->registerKit(new StarterKit());
         $this->registerKit(new LegendKit());
-        $this->registerKit(new KingHeroKit());
+        $this->registerKit(new KingLegendKit());
         $this->registerKit(new RevenantKit());
         $this->registerKit(new AstroKit());
         $this->registerKit(new ArcherKit());

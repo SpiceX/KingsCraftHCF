@@ -17,7 +17,7 @@ class LegendKit extends Kit {
     private $items;
 
     /**
-     * KingHeroKit constructor.
+     * KingLegendKit constructor.
      */
     public function __construct() {
         parent::__construct("Legend", 86400);

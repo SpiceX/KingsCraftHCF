@@ -9,7 +9,7 @@ use pocketmine\utils\TextFormat;
 
 class CrateKey extends CustomItem {
 
-    const CRATE = "Crate";
+    public const CRATE = "Crate";
 
     /**
      * CrateKey constructor.

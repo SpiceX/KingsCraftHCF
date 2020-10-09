@@ -11,10 +11,10 @@ use pocketmine\level\Position;
 class RoadManager {
 
     public const MIN_X_START = -100;
-    public const MAX_X_START = 98;
-    public const MIN_Z_START = -96;
-    public const MAX_Z_START = 106;
-    public const ROAD_WIDTH = 19;
+    public const MAX_X_START = 98; // 98 - 66
+    public const MIN_Z_START = -69; //-96;
+    public const MAX_Z_START = 106; //106 - 61
+    public const ROAD_WIDTH = 32; // 19 - 32
 
     /** @var HCF */
     private $core;

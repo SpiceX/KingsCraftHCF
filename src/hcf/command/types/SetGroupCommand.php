@@ -17,7 +17,7 @@ class SetGroupCommand extends Command {
      * SetGroupCommand constructor.
      */
     public function __construct() {
-        parent::__construct("setgroup", "Set a player's group.", "/setgroup <player> <group>");
+        parent::__construct("setfgroup", "Set a player's group.", "/setfgroup <player> <group>");
     }
 
     /**

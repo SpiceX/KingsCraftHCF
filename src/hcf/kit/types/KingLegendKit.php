@@ -11,16 +11,16 @@ use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
 use pocketmine\utils\TextFormat;
 
-class KingHeroKit extends Kit {
+class KingLegendKit extends Kit {
 
     /** @var Item[] */
     private $items;
 
     /**
-     * KingHeroKit constructor.
+     * KingLegendKit constructor.
      */
     public function __construct() {
-        parent::__construct("KingHero", 86400);
+        parent::__construct("KingLegend", 86400);
         $name = TextFormat::RESET . TextFormat::BOLD . TextFormat::BLUE . $this->getName() . " " . TextFormat::RESET . TextFormat::DARK_BLUE;
         $this->items = [
             (new CustomItem(self::DIAMOND_HELMET, $name . "Helmet", [], [

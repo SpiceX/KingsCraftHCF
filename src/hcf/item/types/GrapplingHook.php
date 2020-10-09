@@ -32,13 +32,6 @@ class GrapplingHook extends CustomItem {
     /**
      * @return int
      */
-    public function getMaxStackSize(): int {
-        return 1;
-    }
-
-    /**
-     * @return int
-     */
     public function getCooldownTicks(): int {
         return 20;
     }

@@ -5,7 +5,6 @@ namespace hcf;
 use hcf\faction\Faction;
 use hcf\groups\Group;
 use hcf\item\entity\GrapplingHook;
-use hcf\road\RoadManager;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
 use hcf\wayPoint\WayPoint;
@@ -43,6 +42,9 @@ class HCFPlayer extends Player {
 
     /** @var bool */
     public $hasAntiTrapperEffect = false;
+
+    /** @var bool */
+    public $hasLumberAxeCooldown = false;
 
     /** @var null|GrapplingHook */
     private $grapplingHook;
@@ -376,7 +378,7 @@ class HCFPlayer extends Player {
      */
     public function setBardEnergy(int $amount): void {
         $this->bardEnergy = max(0, $amount);
-        $this->bossBar->update(TextFormat::LIGHT_PURPLE . TextFormat::BOLD . "Bard Energy: " . TextFormat::RESET . TextFormat::WHITE . $this->bardEnergy, $this->bardEnergy);
+        $this->bossBar->update(TextFormat::LIGHT_PURPLE . TextFormat::BOLD . "Bard Energy: " . TextFormat::RESET . TextFormat::WHITE . $this->bardEnergy, $this->bardEnergy / 100);
     }
 
     /**
@@ -609,19 +611,21 @@ class HCFPlayer extends Player {
             }
             return $region;
         }
-        if($this->core->getRoadManager()->isInRoad($this->asPosition()) && $this->getLevel()->getName() === $this->getServer()->getDefaultLevel()->getName()) {
-            if($this->getFloorZ() > RoadManager::MAX_Z_START) {
+        // $this->core->getRoadManager()->isInRoad($this->asPosition()) &&
+        if($this->getLevel()->getName() === $this->getServer()->getDefaultLevel()->getName()) {
+            $region = "§cWilderness §e(§cDeathban§e)";
+            /*if($this->getFloorZ() > 61 && $this->getFloorX() > -16 && $this->getFloorX() < 16 && Utils::getCompassDirection($this->getYaw() - 90) === 'S') {
                 $region = "§cSouth Road §e(§cDeathban§e)";
             }
-            elseif($this->getFloorZ() < RoadManager::MIN_Z_START) {
+            elseif($this->getFloorZ() > 70 && $this->getFloorX() < -16 && $this->getFloorX() > 16 && Utils::getCompassDirection($this->getYaw() - 90) === 'N') {
                 $region = "§cNorth Road §e(§cDeathban§e)";
             }
-            elseif($this->getFloorX() > RoadManager::MAX_X_START) {
+            elseif($this->getFloorX() > 66 && $this->getFloorZ() < -16 && $this->getFloorZ() > 16 && Utils::getCompassDirection($this->getYaw() - 90) === 'E') {
                 $region = "§cEast Road §e(§cDeathban§e)";
             }
-            else {
+            elseif($this->getFloorX() > -66 && $this->getFloorX() > -16 && $this->getFloorX() < 16 && Utils::getCompassDirection($this->getYaw() - 90) === 'W') {
                 $region = "§cWest Road §e(§cDeathban§e)";
-            }
+            }*/
             return $region;
         }
         $claim = $this->core->getFactionManager()->getClaimInPosition($this->asPosition());
@@ -737,9 +741,10 @@ class HCFPlayer extends Player {
     /**
      * @param HCF $core
      *
+     * @return bool
      * @throws TranslationException
      */
-    public function load(HCF $core): void {
+    public function load(HCF $core): bool {
         $this->scoreboard = new Scoreboard($this);
         $this->bossBar = new BossBar($this);
         $this->core = $core;
@@ -768,7 +773,7 @@ class HCFPlayer extends Player {
                 "reason" => $reason,
                 "time" => $time
             ]));
-            return;
+            return false;
         }
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT effector, reason, expiration FROM mutes WHERE uuid = ?;");
         $stmt->bind_param("s", $uuid);
@@ -805,7 +810,7 @@ class HCFPlayer extends Player {
                     "reason" => "Death ban",
                     "time" => "$days days, $hours hours, $minutes minutes, $seconds seconds"
                 ]));
-                return;
+                return false;
             }
         }
         if($faction !== null) {
@@ -829,6 +834,7 @@ class HCFPlayer extends Player {
         //$this->setScoreTag(TextFormat::WHITE . floor($this->getHealth()) . TextFormat::RED . TextFormat::BOLD . " HP");
         $this->lives = $lives;
         $this->kills = $kills;
+        return true;
     }
 
     public function register(): void {
@@ -850,6 +856,9 @@ class HCFPlayer extends Player {
     public function isRegistered(): bool {
         $uuid = $this->getRawUniqueId();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT username FROM players WHERE uuid = ?");
+        if ($stmt === false){
+            return true;
+        }
         $stmt->bind_param("s", $uuid);
         $stmt->execute();
         $stmt->bind_result($result);
@@ -857,6 +866,9 @@ class HCFPlayer extends Player {
         $stmt->close();
         $uuid = $this->getRawUniqueId();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT username FROM kitCooldowns WHERE uuid = ?");
+        if ($stmt === false){
+            return true;
+        }
         $stmt->bind_param("s", $uuid);
         $stmt->execute();
         $stmt->bind_result($result2);

@@ -78,11 +78,11 @@ class AnimationTask extends Task
                 $pos = new Vector3($x, $cy, $z);
                 $position->level->addParticle(new LavaParticle($pos), [$this->player]);
             }
-            for ($i = 1; $i <= 4; $i++) {
-                $reward = $this->crate->getRewards()[array_rand($this->crate->getRewards())];
-                $callable = $reward->getCallback();
-                $callable($this->player);
-            }
+            //for ($i = 1; $i <= 2; $i++) {
+            $reward = $this->crate->getRewards()[array_rand($this->crate->getRewards())];
+            $callable = $reward->getCallback();
+            $callable($this->player);
+            //}
             $pk = new LevelSoundEventPacket();
             $pk->position = $position;
             $pk->sound = LevelSoundEventPacket::SOUND_BLAST;

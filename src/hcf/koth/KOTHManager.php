@@ -40,11 +40,11 @@ class KOTHManager {
      * @throws KOTHException
      */
     public function init(): void {
-        $this->arenas[] = new KOTHArena("Ruins", new Position(499, 0, 499, $this->core->getServer()->getDefaultLevel()), new Position(501, Level::Y_MAX, 501, $this->core->getServer()->getDefaultLevel()), 300);
-        $this->arenas[] = new KOTHArena("Greek", new Position(498, 0, -499, $this->core->getServer()->getDefaultLevel()), new Position(501, Level::Y_MAX, -502, $this->core->getServer()->getDefaultLevel()), 300);
-        $this->arenas[] = new KOTHArena("Sakura", new Position(-499, 0, 499, $this->core->getServer()->getDefaultLevel()), new Position(-501, Level::Y_MAX, 501, $this->core->getServer()->getDefaultLevel()), 300);
-        $this->arenas[] = new KOTHArena("Medieval", new Position(-499, 0, -499, $this->core->getServer()->getDefaultLevel()), new Position(-501, Level::Y_MAX, -501, $this->core->getServer()->getDefaultLevel()), 300);
-        $this->arenas[] = new KOTHArena("End", new Position(-59, 0, 65, $this->core->getServer()->getLevelByName("ender")), new Position(-61, Level::Y_MAX, 67, $this->core->getServer()->getLevelByName("ender")), 600);
+        $this->arenas[] = new KOTHArena("Ruins", new Position(521, 0, 524, $this->core->getServer()->getDefaultLevel()), new Position(527, Level::Y_MAX, 530, $this->core->getServer()->getDefaultLevel()), 300);
+        $this->arenas[] = new KOTHArena("Greek", new Position(516, 0, -439, $this->core->getServer()->getDefaultLevel()), new Position(520, Level::Y_MAX, -442, $this->core->getServer()->getDefaultLevel()), 300);
+        $this->arenas[] = new KOTHArena("Sakura", new Position(-497, 0, 497, $this->core->getServer()->getDefaultLevel()), new Position(-503, Level::Y_MAX, 503, $this->core->getServer()->getDefaultLevel()), 300);
+        $this->arenas[] = new KOTHArena("Medieval", new Position(-510, 0, -468, $this->core->getServer()->getDefaultLevel()), new Position(-504, Level::Y_MAX, -474, $this->core->getServer()->getDefaultLevel()), 300);
+        $this->arenas[] = new KOTHArena("End", new Position(-15, 0, -3, $this->core->getServer()->getLevelByName("ender")), new Position(-21, Level::Y_MAX, 3, $this->core->getServer()->getLevelByName("ender")), 600);
     }
 
     /**

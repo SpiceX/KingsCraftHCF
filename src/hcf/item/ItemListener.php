@@ -80,7 +80,7 @@ class ItemListener implements Listener
             $item->onClickAir($player, $player->getDirectionVector());
             if ($item instanceof EnderPearl) {
                 if ($item->getDamage() === 1) {
-                    $player->setEnderPearlTime(time() - 5);
+                    $player->setEnderPearlTime(time() - 2);
                 } else {
                     $player->setEnderPearlTime(time() - 1);
                 }
@@ -324,6 +324,20 @@ class ItemListener implements Listener
                     $nbt = Entity::createBaseNBT($player);
                     $hook = new GrapplingHook($player->getLevel(), $nbt, $player);
                     $hook->spawnToAll();
+                    $uses = $tag->getInt(types\GrapplingHook::USES);
+                    $uses--;
+                    if ($uses === 0) {
+                        $player->getInventory()->setItemInHand(Item::get(Item::AIR));
+                    } else {
+                        $tag->setInt(types\GrapplingHook::USES, $uses);
+                        $lore = [];
+                        $lore[] = "";
+                        $lore[] = TextFormat::RESET . TextFormat::GREEN . "Uses left: $uses";
+                        $lore[] = "";
+                        $lore[] = TextFormat::RESET . TextFormat::GRAY . "Travel to a place faster.";
+                        $item->setLore($lore);
+                        $player->getInventory()->setItemInHand($item);
+                    }
                 } elseif ($player->getGrapplingHook()->isOnGround()) {
                     $hook = $player->getGrapplingHook();
                     $hook->handleHookRetraction();

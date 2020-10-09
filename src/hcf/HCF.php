@@ -48,9 +48,9 @@ class HCF extends PluginBase
     public const BORDER = 2000;
     public const EDIT = 200;
     public const MAP = 1;
-    public const MAX_PROTECTION = 2;
+    public const MAX_PROTECTION = 5;
     public const MAX_POWER = 5;
-    public const MAX_SHARPNESS = 2;
+    public const MAX_SHARPNESS = 5;
 
     /** @var BigEndianNBTStream */
     public static $nbtWriter;

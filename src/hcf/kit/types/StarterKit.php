@@ -12,7 +12,7 @@ class StarterKit extends Kit {
     private $items;
 
     /**
-     * StarterKIt constructor.
+     * StarterKit constructor.
      */
     public function __construct() {
         parent::__construct("Starter", 86400);

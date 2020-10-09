@@ -8,10 +8,12 @@ use hcf\HCF;
 use hcf\level\block\Anvil;
 use hcf\level\block\BrewingStand;
 use hcf\level\block\Carrots;
+use hcf\level\block\Dirt;
 use hcf\level\block\EnchantingTable;
 use hcf\level\block\EndPortal;
 use hcf\level\block\EndPortalFrame;
 use hcf\level\block\FenceGate;
+use hcf\level\block\Grass;
 use hcf\level\block\MelonStem;
 use hcf\level\block\MonsterSpawner;
 use hcf\level\block\NetherWartPlant;
@@ -76,7 +78,7 @@ class LevelManager
         $core->getServer()->getPluginManager()->registerEvents(new LevelListener($core), $core);
         self::$nametag = TextFormat::RESET . TextFormat::BOLD . TextFormat::GOLD . self::STACK_NAME . TextFormat::RESET . TextFormat::DARK_GRAY . " [" . TextFormat::YELLOW . "x" . self::STACK_SIZE . TextFormat::DARK_GRAY . "]";
         $this->init();
-        $this->glowstoneMountain = new GlowstoneMountain(new Position(-271, 85, 72, $this->core->getServer()->getLevelByName("nether")), new Position(-282, 98, 83, $this->core->getServer()->getLevelByName("ender")));
+        $this->glowstoneMountain = new GlowstoneMountain(new Position(-343, 36, 345, $this->core->getServer()->getLevelByName("nether")), new Position(-355, 40, 335, $this->core->getServer()->getLevelByName("nether")));
         $core->getScheduler()->scheduleRepeatingTask(new GlowstoneResetTask($this), 18000);
     }
 
@@ -91,15 +93,17 @@ class LevelManager
         Tile::registerTile(Beacon::class);
         BlockFactory::registerBlock(new \hcf\level\block\Hopper(), true);
         BlockFactory::registerBlock(new BrewingStand(), true);
-        BlockFactory::registerBlock(new EndPortal());
+        BlockFactory::registerBlock(new EndPortal(), true);
         BlockFactory::registerBlock(new EndPortalFrame(), true);
-        BlockFactory::registerBlock(new Portal());
+        BlockFactory::registerBlock(new Portal(), true);
         BlockFactory::registerBlock(new Obsidian(), true);
         BlockFactory::registerBlock(new MonsterSpawner(), true);
         BlockFactory::registerBlock(new Anvil(), true);
         BlockFactory::registerBlock(new MelonStem(), true);
         BlockFactory::registerBlock(new NetherWartPlant(), true);
         BlockFactory::registerBlock(new Carrots(), true);
+        BlockFactory::registerBlock(new Dirt(), true);
+        BlockFactory::registerBlock(new Grass(), true);
         BlockFactory::registerBlock(new EnchantingTable(), true);
         BlockFactory::registerBlock(new \hcf\level\block\Beacon(), true);
         BlockFactory::registerBlock(new class() extends Chest {

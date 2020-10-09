@@ -2,6 +2,7 @@
 
 namespace hcf\level\task;
 
+use Exception;
 use hcf\HCF;
 use hcf\level\LevelManager;
 use pocketmine\scheduler\Task;
@@ -23,8 +24,9 @@ class GlowstoneResetTask extends Task {
 
     /**
      * @param int $currentTick
+     * @throws Exception
      */
-    public function onRun(int $currentTick) {
+    public function onRun(int $currentTick): void {
         $this->manager->getGlowstoneMountain()->reset();
         HCF::getInstance()->getServer()->broadcastMessage(TextFormat::YELLOW . "Glowstone mountain has reset! Next reset will be in 15 minutes!");
     }

@@ -18,7 +18,7 @@ abstract class Crate
     public const UNCOMMON = "Uncommon";
     public const COMMON = "Common";
     public const LEGENDARY = "Legendary";
-    public const UNKNOWN = "Summer";
+    public const UNKNOWN = "Unknown";
     public const SPECIAL = "Special";
 
     /** @var string */

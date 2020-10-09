@@ -106,7 +106,10 @@ class HCFListener implements Listener
         if (!$player instanceof HCFPlayer) {
             return;
         }
-        $player->load($this->core);
+        if(!$player->load($this->core)){
+            $event->setCancelled(true);
+            return;
+        }
     }
 
     /**

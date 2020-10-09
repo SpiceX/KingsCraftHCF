@@ -51,6 +51,9 @@ class SpecialItemCooldown extends Task
                 case 'TeleportationBall':
                     $this->player->hasTeleportationBallCooldown = false;
                     break;
+                case 'LumberAxe':
+                    $this->player->hasLumberAxeCooldown = false;
+                    break;
             }
             $this->seconds = 20;
             $this->cancelTask();
@@ -75,6 +78,10 @@ class SpecialItemCooldown extends Task
                 case 'TeleportationBall':
                     $this->player->hasTeleportationBallCooldown = true;
                     $this->player->sendPopup("§eTeleportationBall Cooldown: " . $this->seconds);
+                    break;
+                case 'LumberAxe':
+                    $this->player->hasLumberAxeCooldown = true;
+                    $this->player->sendPopup("§eLumber Axe Cooldown: " . $this->seconds);
                     break;
             }
         }

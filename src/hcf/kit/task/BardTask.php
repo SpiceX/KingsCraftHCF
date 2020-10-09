@@ -32,7 +32,6 @@ class BardTask extends Task
     {
         if ($this->player->isClosed() || $this->player->getClass() !== HCFPlayer::BARD) {
             $this->player->getCore()->getScheduler()->cancelTask($this->getTaskId());
-            $this->player->getBossBar()->update(HCF::SERVER_NAME, 1);
             return;
         }
         if ($this->player->getBardEnergy() !== 100) {
@@ -74,7 +73,6 @@ class BardTask extends Task
                     }
                 }
                 return;
-                break;
             case Item::IRON_INGOT:
                 if ($this->player->getFaction() !== null) {
                     $onlineMembers = $this->player->getFaction()->getOnlineMembers();

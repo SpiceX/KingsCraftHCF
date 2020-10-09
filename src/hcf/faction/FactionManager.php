@@ -37,14 +37,14 @@ class FactionManager {
         $stmt->bind_result($name, $x, $y, $z, $minX, $minZ, $maxX, $maxZ, $level, $members, $allies, $balance, $dtr);
         while($stmt->fetch()) {
             $home = null;
-            if($x !== null and $y !== null and $z !== null and $level !== null) {
+            if($x !== null && $y !== null && $z !== null && $level !== null) {
                 $home = new Position($x, $y, $z, HCF::getInstance()->getServer()->getLevelByName($level));
             }
             $members = explode(",", $members);
             $allies = explode(",", $allies);
             $faction = new Faction($name, $home, $members, $allies, $balance, $dtr);
             $claim = null;
-            if($minX !== null and $minZ !== null and $maxX !== null and $maxZ !== null) {
+            if($minX !== null && $minZ !== null && $maxX !== null && $maxZ !== null) {
                 $firstPosition = new Position($minX, 0, $minZ);
                 $secondPosition = new Position($maxX, Level::Y_MAX, $maxZ);
                 $claim = new Claim($faction, $firstPosition, $secondPosition);

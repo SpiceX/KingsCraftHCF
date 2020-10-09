@@ -2,6 +2,7 @@
 
 namespace hcf\road;
 
+use Exception;
 use hcf\HCF;
 use hcf\HCFPlayer;
 use pocketmine\event\block\BlockBreakEvent;
@@ -90,6 +91,7 @@ class RoadListener implements Listener {
     /**
      * @priority NORMAL
      * @param ChunkPopulateEvent $event
+     * @throws Exception
      */
     public function onChunkPopulate(ChunkPopulateEvent $event): void {
         $level = $event->getLevel();

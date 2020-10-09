@@ -8,6 +8,7 @@ use hcf\HCF;
 use hcf\HCFPlayer;
 use hcf\item\AntiTrapper;
 use hcf\item\CustomItem;
+use hcf\item\LumberAxe;
 use hcf\kit\task\SetClassTask;
 use hcf\task\SpecialItemCooldown;
 use hcf\translation\Translation;
@@ -341,14 +342,14 @@ class CombatListener implements Listener
                     $event->setCancelled();
                     return;
                 }
-                $player->setEnderPearlTime(time() - 5);
+                $player->setEnderPearlTime(time() - 2);
                 return;
             }
             if (time() - $player->getEnderPearlTime() < 10) {
                 $event->setCancelled();
                 return;
             }
-            $player->setEnderPearlTime(time() - 5);
+            $player->setEnderPearlTime(time() - 2);
             return;
         }
     }
@@ -366,8 +367,23 @@ class CombatListener implements Listener
             return;
         }
         if ($tag instanceof CompoundTag) {
+            if ($item->getId() === Item::IRON_AXE && $damager->getLevel()->getFolderName() === "wild") {
+                if ($item->getNamedTag()->hasTag("SpecialFeature")){
+                    if ($damager->hasLumberAxeCooldown){
+                        return;
+                    }
+                    $count = $tag->getInt(LumberAxe::HIT_COUNT);
+                    ++$count;
+                    $tag->setInt(LumberAxe::HIT_COUNT, $count);
+                    if ($count >= 3) {
+                        $victim->getArmorInventory()->setHelmet(Item::get(Item::AIR));
+                        $tag->setInt(LumberAxe::HIT_COUNT, 0);
+                        HCF::getInstance()->getScheduler()->scheduleRepeatingTask(new SpecialItemCooldown($damager, "LumberAxe"), 20);
+                    }
+                }
+            }
             if ($item->getId() === Item::BONE && $damager->getLevel()->getFolderName() === "wild") {
-                if ($damager->hasAntiTrapperCooldown){
+                if ($damager->hasAntiTrapperCooldown) {
                     $damager->sendMessage("§cYour AntiTrapper is on cooldown.");
                     return;
                 }
