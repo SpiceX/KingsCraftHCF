@@ -8,6 +8,7 @@ use hcf\network\packets\InventoryTransactionPacket;
 use InvalidArgumentException;
 use pocketmine\inventory\transaction\action\CreativeInventoryAction;
 use pocketmine\inventory\transaction\action\DropItemAction;
+use pocketmine\inventory\transaction\action\EnchantAction;
 use pocketmine\inventory\transaction\action\InventoryAction;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\item\enchantment\Enchantment;
@@ -18,13 +19,9 @@ use UnexpectedValueException;
 class NetworkInventoryAction {
 
     public const SOURCE_CONTAINER = 0;
-
     public const SOURCE_WORLD = 2;
-
     public const SOURCE_CREATIVE = 3;
-
     public const SOURCE_CRAFTING_GRID = 100;
-
     public const SOURCE_TODO = 99999;
 
     /**
@@ -37,46 +34,26 @@ class NetworkInventoryAction {
      * Expect these to change in the future.
      */
     public const SOURCE_TYPE_CRAFTING_ADD_INGREDIENT = -2;
-
     public const SOURCE_TYPE_CRAFTING_REMOVE_INGREDIENT = -3;
-
     public const SOURCE_TYPE_CRAFTING_RESULT = -4;
-
     public const SOURCE_TYPE_CRAFTING_USE_INGREDIENT = -5;
-
     public const SOURCE_TYPE_ANVIL_INPUT = -10;
-
     public const SOURCE_TYPE_ANVIL_MATERIAL = -11;
-
     public const SOURCE_TYPE_ANVIL_RESULT = -12;
-
     public const SOURCE_TYPE_ANVIL_OUTPUT = -13;
-
     public const SOURCE_TYPE_ENCHANT_INPUT = -15;
-
     public const SOURCE_TYPE_ENCHANT_MATERIAL = -16;
-
     public const SOURCE_TYPE_ENCHANT_OUTPUT = -17;
-
     public const SOURCE_TYPE_TRADING_INPUT_1 = -20;
-
     public const SOURCE_TYPE_TRADING_INPUT_2 = -21;
-
     public const SOURCE_TYPE_TRADING_USE_INPUTS = -22;
-
     public const SOURCE_TYPE_TRADING_OUTPUT = -23;
-
     public const SOURCE_TYPE_BEACON = -24;
-
     /** Any client-side window dropping its contents when the player closes it */
     public const SOURCE_TYPE_CONTAINER_DROP_CONTENTS = -100;
-
     public const ACTION_MAGIC_SLOT_CREATIVE_DELETE_ITEM = 0;
-
     public const ACTION_MAGIC_SLOT_CREATIVE_CREATE_ITEM = 1;
-
     public const ACTION_MAGIC_SLOT_DROP_ITEM = 0;
-
     public const ACTION_MAGIC_SLOT_PICKUP_ITEM = 1;
 
     /** @var int */
@@ -102,7 +79,8 @@ class NetworkInventoryAction {
      *
      * @return $this
      */
-    public function read(InventoryTransactionPacket $packet) {
+    public function read(InventoryTransactionPacket $packet): self
+    {
         $this->sourceType = $packet->getUnsignedVarInt();
         switch($this->sourceType) {
             case self::SOURCE_CONTAINER:
@@ -137,9 +115,12 @@ class NetworkInventoryAction {
     /**
      * @param InventoryTransactionPacket $packet
      */
-    public function write(InventoryTransactionPacket $packet) {
+    public function write(InventoryTransactionPacket $packet): void
+    {
         $packet->putUnsignedVarInt($this->sourceType);
         switch($this->sourceType) {
+            case self::SOURCE_TODO:
+            case self::SOURCE_CRAFTING_GRID:
             case self::SOURCE_CONTAINER:
                 $packet->putVarInt($this->windowId);
                 break;
@@ -147,10 +128,6 @@ class NetworkInventoryAction {
                 $packet->putUnsignedVarInt($this->sourceFlags);
                 break;
             case self::SOURCE_CREATIVE:
-                break;
-            case self::SOURCE_CRAFTING_GRID:
-            case self::SOURCE_TODO:
-                $packet->putVarInt($this->windowId);
                 break;
             default:
                 throw new InvalidArgumentException("Unknown inventory action source type $this->sourceType");
@@ -200,9 +177,8 @@ class NetworkInventoryAction {
                     case self::SOURCE_TYPE_CRAFTING_REMOVE_INGREDIENT:
                     case self::SOURCE_TYPE_CONTAINER_DROP_CONTENTS: //TODO: this type applies to all fake windows, not just crafting
                         return new SlotChangeAction($player->getCraftingGrid(), $this->inventorySlot, $this->oldItem, $this->newItem);
-                    case self::SOURCE_TYPE_CRAFTING_RESULT:
-                        return null;
                     case self::SOURCE_TYPE_CRAFTING_USE_INGREDIENT:
+                    case self::SOURCE_TYPE_CRAFTING_RESULT:
                         return null;
                     case self::SOURCE_TYPE_ENCHANT_INPUT:
                     case self::SOURCE_TYPE_ENCHANT_MATERIAL:
@@ -211,10 +187,12 @@ class NetworkInventoryAction {
                         if(!($inv instanceof EnchantInventory)) {
                             return null;
                         }
+                        new action\EnchantAction($inv, $this->inventorySlot, $this->oldItem, $this->newItem);
                         switch($this->windowId) {
                             case self::SOURCE_TYPE_ENCHANT_INPUT:
                                 $this->inventorySlot = 0;
                                 $local = $inv->getItem(0);
+
                                 if($local->equals($this->newItem, true, false)) {
                                     $enchantments = [
                                         Enchantment::FIRE_ASPECT,
@@ -247,7 +225,7 @@ class NetworkInventoryAction {
                                             $this->newItem->addEnchantment($enchantment);
                                         }
                                     }
-                                    if(count($this->newItem->getEnchantments()) <= 0 and $this->newItem->hasEnchantments()) {
+                                    if($this->newItem->hasEnchantments() && count($this->newItem->getEnchantments()) <= 0) {
                                         $this->newItem->removeEnchantments();
                                     }
                                     $inv->setItem(0, $this->newItem);
@@ -295,7 +273,7 @@ class NetworkInventoryAction {
                                 $inv->clear(0);
                                 if(!($material = $inv->getItem(1))->isNull()) {
                                     $material = clone $material;
-                                    $material->count -= 1;
+                                    --$material->count;
                                     $inv->setItem(1, $material);
                                 }
                                 $enchantments = [

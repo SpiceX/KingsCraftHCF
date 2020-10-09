@@ -50,6 +50,10 @@ class AnvilForm extends MenuForm
                 $player->sendForm(new RenameForm());
                 break;
             case 1:
+                if(!$player->hasPermission("anvil.repair")) {
+                    $player->sendMessage(Translation::getMessage("noPermission"));
+                    return;
+                }
                 $item = $player->getInventory()->getItemInHand();
                 if (!$item instanceof Durable){
                     $player->sendMessage("§cHey! That item can not be repaired.");
@@ -60,6 +64,10 @@ class AnvilForm extends MenuForm
                 $player->sendMessage("§a{$item->getName()} was repaired! ;)");
                 break;
             case 2:
+                if(!$player->hasPermission("anvil.repairall")) {
+                    $player->sendMessage(Translation::getMessage("noPermission"));
+                    return;
+                }
                 $inventory = [];
                 foreach ($player->getInventory()->getContents() as $item) {
                     if ($item instanceof Durable){
