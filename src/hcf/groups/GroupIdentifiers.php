@@ -5,10 +5,10 @@ namespace hcf\groups;
 interface GroupIdentifiers {
 
     public const PLAYER = 0;
-    public const JUNIOR = 1;
-    public const GRAND = 2;
-    public const PRIME = 3;
-    public const PRIMAL = 4;
+    public const ASTRO = 1;
+    public const LEGEND = 2;
+    public const REVENANT = 3;
+    public const KING = 4;
     public const TRAINEE = 5;
     public const MODERATOR = 6;
     public const SENIOR_MODERATOR = 7;

@@ -2,7 +2,7 @@
 
 namespace libs\form;
 
-use http\Exception\InvalidArgumentException;
+use InvalidArgumentException;
 use libs\form\element\CustomFormElement;
 use libs\utils\Utils;
 use pocketmine\form\FormValidationException;
@@ -87,7 +87,6 @@ abstract class CustomForm extends BaseForm {
                 throw new FormValidationException("Expected $expected result data, got $actual");
             }
             $values = [];
-            /** @var array $data */
             foreach($data as $index => $value) {
                 if(!isset($this->elements[$index])) {
                     throw new FormValidationException("Element at offset $index does not exist");

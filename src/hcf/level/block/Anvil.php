@@ -2,12 +2,14 @@
 
 namespace hcf\level\block;
 
-use hcf\level\inventory\AnvilInventory;
-use hcf\network\WindowIds;
+use hcf\HCFPlayer;
+use hcf\level\form\AnvilForm;
 use pocketmine\item\Item;
 use pocketmine\Player;
 
 class Anvil extends \pocketmine\block\Anvil {
+
+
 
     /**
      * @param Item $item
@@ -16,9 +18,11 @@ class Anvil extends \pocketmine\block\Anvil {
      * @return bool
      */
     public function onActivate(Item $item, Player $player = null): bool {
-        if($player instanceof Player) {
-            $player->addWindow(new AnvilInventory($this), WindowIds::ANVIL);
+        if($player instanceof HCFPlayer) {
+            $player->sendForm(new AnvilForm());
+            //$player->addWindow(new AnvilInventory($this), WindowIds::ANVIL);
         }
+
         return true;
     }
 }

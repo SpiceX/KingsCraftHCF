@@ -41,24 +41,24 @@ class ReclaimCommand extends Command {
             case Group::PLAYER:
                 $sender->sendMessage(Translation::getMessage("noPermission"));
                 return;
-            case Group::JUNIOR:
+            case Group::ASTRO:
                 $sender->addLives(3);
                 $sender->getInventory()->addItem((new CrateKey($this->getCore()->getCrateManager()->getCrate(Crate::UNCOMMON)))->setCount(3));
                 $sender->getInventory()->addItem((new CrateKey($this->getCore()->getCrateManager()->getCrate(Crate::COMMON)))->setCount(1));
                 break;
-            case Group::GRAND:
+            case Group::LEGEND:
                 $sender->addLives(5);
                 $sender->getInventory()->addItem((new CrateKey($this->getCore()->getCrateManager()->getCrate(Crate::UNCOMMON)))->setCount(5));
                 $sender->getInventory()->addItem((new CrateKey($this->getCore()->getCrateManager()->getCrate(Crate::COMMON)))->setCount(3));
                 $sender->getInventory()->addItem((new CrateKey($this->getCore()->getCrateManager()->getCrate(Crate::LEGENDARY)))->setCount(1));
                 break;
-            case Group::PRIME:
+            case Group::REVENANT:
                 $sender->addLives(8);
                 $sender->getInventory()->addItem((new CrateKey($this->getCore()->getCrateManager()->getCrate(Crate::UNCOMMON)))->setCount(8));
                 $sender->getInventory()->addItem((new CrateKey($this->getCore()->getCrateManager()->getCrate(Crate::COMMON)))->setCount(5));
                 $sender->getInventory()->addItem((new CrateKey($this->getCore()->getCrateManager()->getCrate(Crate::LEGENDARY)))->setCount(3));
                 break;
-            case Group::PRIMAL:
+            case Group::KING:
                 $sender->addLives(10);
                 $sender->getInventory()->addItem((new CrateKey($this->getCore()->getCrateManager()->getCrate(Crate::UNCOMMON)))->setCount(10));
                 $sender->getInventory()->addItem((new CrateKey($this->getCore()->getCrateManager()->getCrate(Crate::COMMON)))->setCount(8));
