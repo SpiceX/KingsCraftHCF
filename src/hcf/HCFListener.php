@@ -458,6 +458,7 @@ class HCFListener implements Listener
         }
         /** @var HCFPlayer $player */
         $player = $event->getPlayer();
+
         if ($player->hasEffect(28)){
             $event->setCancelled();
             return;

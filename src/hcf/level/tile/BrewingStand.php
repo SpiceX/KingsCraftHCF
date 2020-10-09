@@ -67,7 +67,7 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
     private $nbt;
 
     /** @var BrewingInventory */
-    private $inventory = null;
+    private $inventory;
 
     /**
      * BrewingStand constructor.
@@ -121,7 +121,7 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
      * @return bool
      */
     public function isValidFuel(Item $item): bool {
-        return ($item->getId() == Item::BLAZE_POWDER && $item->getDamage() == 0);
+        return ($item->getId() === Item::BLAZE_POWDER && $item->getDamage() === 0);
     }
 
     /**
@@ -208,7 +208,7 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
                     $hasBottle = false;
                     $potion = $this->inventory->getItem($i);
                     $recipe = HCF::getInstance()->getLevelManager()->matchBrewingRecipe($ingredient, $potion);
-                    if($recipe != null and !$potion->isNull()) {
+                    if($recipe !== null && !$potion->isNull()) {
                         $this->inventory->setItem($i, $recipe->getResult());
                         $hasBottle = true;
                     }
@@ -253,7 +253,7 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
      * @return bool
      */
     public function isValidPotion(Item $item): bool {
-        return (in_array($item->getId(), [Item::POTION, Item::SPLASH_POTION]));
+        return (in_array($item->getId(), [Item::POTION, Item::SPLASH_POTION], true));
     }
 
     /**
@@ -262,7 +262,7 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
      */
     public function setBottle(int $slot, bool $hasBottle): void {
         if($slot > -1 && $slot < 3) {
-            $this->getNBT()->setByte(self::TAG_HAS_BOTTLE_BASE . strval($slot), intval($hasBottle));
+            $this->getNBT()->setByte(self::TAG_HAS_BOTTLE_BASE . (string)$slot, (int)$hasBottle);
         }
         else {
             throw new InvalidArgumentException("Slot must be in the range of 0-2.");
@@ -319,7 +319,7 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
      * @return bool
      */
     public function isValidIngredient(Item $item): bool {
-        return (in_array($item->getId(), self::INGREDIENTS) && $item->getDamage() == 0);
+        return (in_array($item->getId(), self::INGREDIENTS) && $item->getDamage() === 0);
     }
 
     /**

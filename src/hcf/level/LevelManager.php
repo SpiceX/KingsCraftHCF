@@ -12,7 +12,6 @@ use hcf\level\block\Dirt;
 use hcf\level\block\EnchantingTable;
 use hcf\level\block\EndPortal;
 use hcf\level\block\EndPortalFrame;
-use hcf\level\block\FenceGate;
 use hcf\level\block\Grass;
 use hcf\level\block\MelonStem;
 use hcf\level\block\MonsterSpawner;
@@ -159,7 +158,7 @@ class LevelManager
                 $bbs = [];
                 $connectWest = $this->canConnect($this->getSide(Vector3::SIDE_WEST));
                 $connectEast = $this->canConnect($this->getSide(Vector3::SIDE_EAST));
-                if ($connectWest or $connectEast) {
+                if ($connectWest || $connectEast) {
                     //X axis (west/east)
                     $bbs[] = new AxisAlignedBB(
                         $this->x + ($connectWest ? 0 : $inset),
@@ -172,7 +171,7 @@ class LevelManager
                 }
                 $connectNorth = $this->canConnect($this->getSide(Vector3::SIDE_NORTH));
                 $connectSouth = $this->canConnect($this->getSide(Vector3::SIDE_SOUTH));
-                if ($connectNorth or $connectSouth) {
+                if ($connectNorth || $connectSouth) {
                     //Z axis (north/south)
                     $bbs[] = new AxisAlignedBB(
                         $this->x + $inset,
@@ -248,7 +247,7 @@ class LevelManager
                 $bbs = [];
                 $connectWest = $this->canConnect($this->getSide(Vector3::SIDE_WEST));
                 $connectEast = $this->canConnect($this->getSide(Vector3::SIDE_EAST));
-                if ($connectWest or $connectEast) {
+                if ($connectWest || $connectEast) {
                     //X axis (west/east)
                     $bbs[] = new AxisAlignedBB(
                         $this->x + ($connectWest ? 0 : $inset),
@@ -261,7 +260,7 @@ class LevelManager
                 }
                 $connectNorth = $this->canConnect($this->getSide(Vector3::SIDE_NORTH));
                 $connectSouth = $this->canConnect($this->getSide(Vector3::SIDE_SOUTH));
-                if ($connectNorth or $connectSouth) {
+                if ($connectNorth || $connectSouth) {
                     //Z axis (north/south)
                     $bbs[] = new AxisAlignedBB(
                         $this->x + $inset,
