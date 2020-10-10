@@ -855,25 +855,9 @@ class HCFPlayer extends Player {
      */
     public function isRegistered(): bool {
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT username FROM players WHERE uuid = ?");
-        if ($stmt === false){
-            return true;
-        }
-        $stmt->bind_param("s", $uuid);
-        $stmt->execute();
-        $stmt->bind_result($result);
-        $stmt->fetch();
-        $stmt->close();
+        $result = $this->core->getMySQLProvider()->getDatabase()->query("SELECT username FROM players WHERE uuid = $uuid");
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT username FROM kitCooldowns WHERE uuid = ?");
-        if ($stmt === false){
-            return true;
-        }
-        $stmt->bind_param("s", $uuid);
-        $stmt->execute();
-        $stmt->bind_result($result2);
-        $stmt->fetch();
-        $stmt->close();
+        $result2 = $this->core->getMySQLProvider()->getDatabase()->query("SELECT username FROM kitCooldowns WHERE uuid = $uuid");
         return $result !== null && $result2 !== null;
     }
 
