@@ -278,10 +278,11 @@ class HCFPlayer extends Player {
         $this->reclaim = $value;
         $claimed = $value ? 1 : 0;
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET reclaim = ? WHERE uuid = ?");
-        $stmt->bind_param("is", $claimed, $uuid);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET reclaim = :claimed WHERE uuid = :uuid");
+        $stmt->bindParam(':claimed', $claimed);
+        $stmt->bindParam(':uuid', $uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -840,11 +841,11 @@ class HCFPlayer extends Player {
     public function register(): void {
         $uuid = $this->getRawUniqueId();
         $username = $this->getName();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("INSERT INTO players(uuid, username) VALUES(?, ?)");
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("INSERT INTO players(uuid, username) VALUES(?, ?);");
         $stmt->bind_param("ss", $uuid, $username);
         $stmt->execute();
         $stmt->close();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("INSERT INTO kitCooldowns(uuid, username) VALUES(?, ?)");
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("INSERT INTO kitCooldowns(uuid, username) VALUES(?, ?);");
         $stmt->bind_param("ss", $uuid, $username);
         $stmt->execute();
         $stmt->close();
@@ -855,10 +856,10 @@ class HCFPlayer extends Player {
      */
     public function isRegistered(): bool {
         $uuid = $this->getRawUniqueId();
-        $result = $this->core->getMySQLProvider()->getDatabase()->query("SELECT username FROM players WHERE uuid = $uuid");
+        $result = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT username FROM players WHERE uuid = $uuid");
         $uuid = $this->getRawUniqueId();
         $result2 = $this->core->getMySQLProvider()->getDatabase()->query("SELECT username FROM kitCooldowns WHERE uuid = $uuid");
-        return $result !== null && $result2 !== null;
+        return $result !== false && $result2 !== false;
     }
 
     /**

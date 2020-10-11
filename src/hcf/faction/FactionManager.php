@@ -5,6 +5,7 @@ namespace hcf\faction;
 use hcf\faction\task\FactionHeartbeatTask;
 use hcf\HCF;
 use hcf\HCFPlayer;
+use PDO;
 use pocketmine\level\Level;
 use pocketmine\level\Position;
 
@@ -32,30 +33,28 @@ class FactionManager {
     }
 
     public function init(): void {
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT name, x, y, z, minX, minZ, maxX, maxZ, level, members, allies, balance, dtr FROM factions");
-        $stmt->execute();
-        $stmt->bind_result($name, $x, $y, $z, $minX, $minZ, $maxX, $maxZ, $level, $members, $allies, $balance, $dtr);
-        while($stmt->fetch()) {
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->query("SELECT name, x, y, z, minX, minZ, maxX, maxZ, level, members, allies, balance, dtr FROM factions");
+        while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $home = null;
-            if($x !== null && $y !== null && $z !== null && $level !== null) {
-                $home = new Position($x, $y, $z, HCF::getInstance()->getServer()->getLevelByName($level));
+            if($row['x'] !== null && $row['y'] !== null && $row['z'] !== null && $row['level'] !== null) {
+                $home = new Position($row['x'], $row['y'], $row['z'], HCF::getInstance()->getServer()->getLevelByName($row['level']));
             }
-            $members = explode(",", $members);
-            $allies = explode(",", $allies);
-            $faction = new Faction($name, $home, $members, $allies, $balance, $dtr);
+            $members = explode(",", $row['members']);
+            $allies = explode(",", $row['allies']);
+            $faction = new Faction($row['name'], $home, $members, $allies, $row['balance'], $row['dtr']);
             $claim = null;
-            if($minX !== null && $minZ !== null && $maxX !== null && $maxZ !== null) {
-                $firstPosition = new Position($minX, 0, $minZ);
-                $secondPosition = new Position($maxX, Level::Y_MAX, $maxZ);
+            if($row['minX'] !== null && $row['minZ'] !== null && $row['maxX'] !== null && $row['maxZ'] !== null) {
+                $firstPosition = new Position($row['minX'], 0, $row['minZ']);
+                $secondPosition = new Position($row['maxX'], Level::Y_MAX, $row['maxZ']);
                 $claim = new Claim($faction, $firstPosition, $secondPosition);
             }
             $faction->setClaim($claim);
             if($claim !== null) {
                 $this->addClaim($claim);
             }
-            $this->factions[$name] = $faction;
+            $this->factions[$row['name']] = $faction;
         }
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -85,10 +84,11 @@ class FactionManager {
             throw new FactionException("Unable to override an existing faction!");
         }
         $members = $leader->getName();
-        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("INSERT INTO factions(name, members) VALUES(?, ?)");
-        $stmt->bind_param("ss", $name, $members);
+        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("INSERT INTO factions(name, members) VALUES(:name, :members)");
+        $stmt->bindParam(':name', $name);
+        $stmt->bindParam(':members', $members);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
         $faction = new Faction($name, null, [$members], [], 0, Faction::MAX_DTR);
         $this->factions[$name] = $faction;
         $leader->setFaction($this->factions[$name]);
@@ -119,10 +119,10 @@ class FactionManager {
         if($faction->getClaim() !== null) {
             $this->removeClaim($faction->getClaim());
         }
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("DELETE FROM factions WHERE name = ?");
-        $stmt->bind_param("s", $name);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("DELETE FROM factions WHERE name = :name");
+        $stmt->bindParam(':name', $name);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**

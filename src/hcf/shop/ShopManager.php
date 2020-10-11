@@ -3,6 +3,7 @@
 namespace hcf\shop;
 
 use hcf\HCF;
+use PDO;
 use pocketmine\level\Position;
 
 class ShopManager {
@@ -25,13 +26,11 @@ class ShopManager {
     }
 
     public function init(): void {
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT x, y, z, level, item, type, price FROM shops");
-        $stmt->execute();
-        $stmt->bind_result($x, $y, $z, $level, $item, $type, $price);;
-        while($stmt->fetch()) {
-            $this->shopSigns[] = new ShopSign(new Position($x, $y, $z, $this->core->getServer()->getLevelByName($level)), HCF::decodeItem($item), $price, $type);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->query("SELECT x, y, z, level, item, type, price FROM shops");
+        while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $this->shopSigns[] = new ShopSign(new Position($row['x'], $row['y'], $row['z'], $this->core->getServer()->getLevelByName($row['level'])), HCF::decodeItem($row['item']), $row['price'], $row['type']);
         }
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -46,10 +45,16 @@ class ShopManager {
         $item = HCF::encodeItem($sign->getItem());
         $type = $sign->getType();
         $price = $sign->getPrice();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("INSERT INTO shops(x, y, z, level, item, type, price) VALUES(?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("iiissii", $x, $y, $z, $level, $item, $type, $price);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("INSERT INTO shops(x, y, z, level, item, type, price) VALUES(:x, :y, :z, :level, :item, :type, :price)");
+        $stmt->bindParam(':x', $x);
+        $stmt->bindParam(':y', $y);
+        $stmt->bindParam(':z', $z);
+        $stmt->bindParam(':level', $level);
+        $stmt->bindParam(':item', $item);
+        $stmt->bindParam(':type', $type);
+        $stmt->bindParam(':price', $price);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -68,10 +73,16 @@ class ShopManager {
         $item = HCF::encodeItem($sign->getItem());
         $type = $sign->getType();
         $price = $sign->getPrice();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("DELETE FROM shops WHERE x = ? AND y = ? AND z = ? AND level = ? AND item = ? AND type = ? AND price = ?");
-        $stmt->bind_param("iiissii", $x, $y, $z, $level, $item, $type, $price);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("DELETE FROM shops WHERE x = :x AND y = :y AND z = :z AND level = :level AND item = :item AND type = :type AND price = :price");
+        $stmt->bindParam(':x', $x);
+        $stmt->bindParam(':y', $y);
+        $stmt->bindParam(':z', $z);
+        $stmt->bindParam(':level', $level);
+        $stmt->bindParam(':item', $item);
+        $stmt->bindParam(':type', $type);
+        $stmt->bindParam(':price', $price);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**

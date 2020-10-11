@@ -3,13 +3,9 @@
 namespace hcf\level\block;
 
 use pocketmine\event\block\BlockGrowEvent;
-use ReflectionException;
 
 abstract class Crops extends \pocketmine\block\Crops {
 
-    /**
-     * @throws ReflectionException
-     */
     public function onRandomTick(): void {
         if($this->meta < 0x07) {
             $block = clone $this;
