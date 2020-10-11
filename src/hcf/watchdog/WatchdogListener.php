@@ -78,7 +78,7 @@ class WatchdogListener implements Listener
             return;
         }
         $ipAddress = $player->getAddress();
-        $uuid = $player->getRawUniqueId();
+        $uuid = $player->getUniqueId()->toString();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT riskLevel FROM ipAddress WHERE ipAddress = :ipAddress AND uuid = :uuid");
         $stmt->bindParam(":ipAddress", $ipAddress);
         $stmt->bindParam(":uuid", $uuid);
@@ -269,7 +269,7 @@ class WatchdogListener implements Listener
             return;
         }
         if ($player->isFrozen()) {
-            $uuid = $player->getRawUniqueId();
+            $uuid = $player->getUniqueId()->toString();
             $name = $player->getName();
             $effector = "Watchdog";
             $reason = "Leaving while being frozen";

@@ -21,4 +21,12 @@ class CombatManager {
         Entity::registerEntity(LogoutVillager::class, true);
         $core->getServer()->getPluginManager()->registerEvents(new CombatListener($core), $core);
     }
+
+    /**
+     * @return HCF
+     */
+    public function getCore(): HCF
+    {
+        return $this->core;
+    }
 }

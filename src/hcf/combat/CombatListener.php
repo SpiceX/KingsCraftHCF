@@ -212,7 +212,7 @@ class CombatListener implements Listener
         if ($deathBanTime > 0) {
             if ($player->getLives() <= 0) {
                 $time = time();
-                $uuid = $player->getRawUniqueId();
+                $uuid = $player->getUniqueId()->toString();
                 $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET deathBanTime = :time WHERE uuid = :uuid");
                 $stmt->bindParam(":time", $time);
                 $stmt->bindParam(":uuid", $uuid);

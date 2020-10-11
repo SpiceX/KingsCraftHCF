@@ -107,7 +107,7 @@ class KitCommand extends Command
         if (!$player instanceof HCFPlayer) {
             return;
         }
-        $uuid = $player->getRawUniqueId();
+        $uuid = $player->getUniqueId()->toString();
         $time = time();
         $lowercaseName = strtolower($selectedKit);
         if (!$player->hasPermission("kit.$lowercaseName")) {

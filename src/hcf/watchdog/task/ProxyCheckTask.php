@@ -72,7 +72,7 @@ class ProxyCheckTask extends AsyncTask
         switch ($result) {
             case 0:
                 $server->getLogger()->info("No malicious ip swapper was detected in {$this->player}.");
-                $uuid = $player->getRawUniqueId();
+                $uuid = $player->getUniqueId()->toString();
                 $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("INSERT INTO ipAddress(uuid, username, ipAddress, riskLevel) VALUES(:uuid, :username, :ipAddress, :riskLevel);");
                 $stmt->bindParam("uuid", $uuid);
                 $stmt->bindParam("username", $this->player);
@@ -83,7 +83,7 @@ class ProxyCheckTask extends AsyncTask
                 break;
             case 1:
                 $server->getLogger()->warning("A malicious ip swapper was detected in {$this->player}.");
-                $uuid = $player->getRawUniqueId();
+                $uuid = $player->getUniqueId()->toString();
                 $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("INSERT INTO ipAddress(uuid, username, ipAddress, riskLevel) VALUES(:uuid, :username, :ipAddress, :riskLevel);");
                 $stmt->bindParam("uuid", $uuid);
                 $stmt->bindParam("username", $this->player);
@@ -97,7 +97,7 @@ class ProxyCheckTask extends AsyncTask
                 $player->close(null, TextFormat::RED . "A malicious ip swapper was detected!");
                 break;
             case 2:
-                $uuid = $player->getRawUniqueId();
+                $uuid = $player->getUniqueId()->toString();
                 $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("INSERT INTO ipAddress(uuid, username, ipAddress, riskLevel) VALUES(:uuid, :username, :ipAddress, :riskLevel);");
                 $stmt->bindParam("uuid", $uuid);
                 $stmt->bindParam("username", $this->player);

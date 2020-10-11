@@ -45,7 +45,7 @@ class BanCommand extends Command
             }
             $player = $this->getCore()->getServer()->getPlayerExact($args[0]);
             if ($player instanceof HCFPlayer) {
-                $uuid = $player->getRawUniqueId();
+                $uuid = $player->getUniqueId()->toString();
                 $name = $sender->getName();
                 $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("INSERT INTO bans(uuid, username, effector, reason, expiration) VALUES(:uuid, :username, :effector, :reason, :expiration);");
                 $stmt->bindParam(":uuid", $uuid);

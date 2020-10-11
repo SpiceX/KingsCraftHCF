@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection NullPointerExceptionInspection */
 
 namespace hcf;
 
@@ -20,7 +20,8 @@ use pocketmine\permission\Permission;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 
-class HCFPlayer extends Player {
+class HCFPlayer extends Player
+{
 
     public const PUBLIC = 0;
     public const FACTION = 1;
@@ -185,42 +186,46 @@ class HCFPlayer extends Player {
     /**
      * @return GrapplingHook|null
      */
-    public function getGrapplingHook(): ?GrapplingHook {
+    public function getGrapplingHook(): ?GrapplingHook
+    {
         return $this->grapplingHook;
     }
 
     /**
      * @param GrapplingHook|null $hook
      */
-    public function setGrapplingHook(?GrapplingHook $hook): void {
+    public function setGrapplingHook(?GrapplingHook $hook): void
+    {
         $this->grapplingHook = $hook;
     }
 
     /**
      * @param bool $value
      */
-    public function setLogout(bool $value = true): void {
+    public function setLogout(bool $value = true): void
+    {
         $this->logout = $value;
     }
 
     /**
      * @return bool
      */
-    public function canLogout(): bool {
-        if($this->isInvincible()) {
+    public function canLogout(): bool
+    {
+        if ($this->isInvincible()) {
             return true;
         }
         $areaManager = $this->core->getAreaManager();
         $areas = $areaManager->getAreasInPosition($this->asPosition());
         $pvp = true;
-        if($areas !== null) {
-            foreach($areas as $area) {
-                if($pvp === true && ($area->getPvpFlag() === false)) {
+        if ($areas !== null) {
+            foreach ($areas as $area) {
+                if ($pvp === true && ($area->getPvpFlag() === false)) {
                     $pvp = false;
                 }
             }
         }
-        if($pvp === false) {
+        if ($pvp === false) {
             return true;
         }
         return $this->logout;
@@ -229,56 +234,64 @@ class HCFPlayer extends Player {
     /**
      * @return int
      */
-    public function getBuffDelayTime(): int {
+    public function getBuffDelayTime(): int
+    {
         return $this->buffDelayTime;
     }
 
-    public function setBuffDelayTime(): void {
+    public function setBuffDelayTime(): void
+    {
         $this->buffDelayTime = time();
     }
 
     /**
      * @return int
      */
-    public function getEnderPearlTime(): int {
+    public function getEnderPearlTime(): int
+    {
         return $this->enderPearlTime;
     }
 
     /**
      * @param int|null $time
      */
-    public function setEnderPearlTime(int $time): void {
+    public function setEnderPearlTime(int $time): void
+    {
         $this->enderPearlTime = $time ?? time();
     }
 
     /**
      * @return bool
      */
-    public function isFrozen(): bool {
+    public function isFrozen(): bool
+    {
         return $this->frozen;
     }
 
     /**
      * @param bool $value
      */
-    public function setFrozen(bool $value = true): void {
+    public function setFrozen(bool $value = true): void
+    {
         $this->frozen = $value;
     }
 
     /**
      * @return bool
      */
-    public function hasReclaimed(): bool {
+    public function hasReclaimed(): bool
+    {
         return $this->reclaim;
     }
 
     /**
      * @param bool $value
      */
-    public function setReclaimed(bool $value = true): void {
+    public function setReclaimed(bool $value = true): void
+    {
         $this->reclaim = $value;
         $claimed = $value ? 1 : 0;
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET reclaim = :claimed WHERE uuid = :uuid");
         $stmt->bindParam(':claimed', $claimed);
         $stmt->bindParam(':uuid', $uuid);
@@ -289,64 +302,73 @@ class HCFPlayer extends Player {
     /**
      * @return bool
      */
-    public function isClaiming(): bool {
+    public function isClaiming(): bool
+    {
         return $this->claiming;
     }
 
     /**
      * @param bool $value
      */
-    public function setClaiming(bool $value = true): void {
+    public function setClaiming(bool $value = true): void
+    {
         $this->claiming = $value;
     }
 
     /**
      * @return Position|null
      */
-    public function getFirstClaimPosition(): ?Position {
+    public function getFirstClaimPosition(): ?Position
+    {
         return $this->clamingFirstPosition;
     }
 
     /**
      * @return Position|null
      */
-    public function getSecondClaimPosition(): ?Position {
+    public function getSecondClaimPosition(): ?Position
+    {
         return $this->claimingSecondPosition;
     }
 
     /**
      * @param Position|null $position
      */
-    public function setFirstClaimingPosition(?Position $position): void {
+    public function setFirstClaimingPosition(?Position $position): void
+    {
         $this->clamingFirstPosition = $position;
     }
 
     /**
      * @param Position|null $position
      */
-    public function setSecondClaimingPosition(?Position $position): void {
+    public function setSecondClaimingPosition(?Position $position): void
+    {
         $this->claimingSecondPosition = $position;
     }
 
     /**
      * @return bool
      */
-    public function isRunningCrateAnimation(): bool {
+    public function isRunningCrateAnimation(): bool
+    {
         return $this->runningCrateAnimation;
     }
 
     /**
      * @param bool $value
      */
-    public function setRunningCrateAnimation(bool $value = true): void {
+    public function setRunningCrateAnimation(bool $value = true): void
+    {
         $this->runningCrateAnimation = $value;
     }
 
     /**
      * @param HCFPlayer|null $player
      */
-    public function archerTag(?HCFPlayer $player): void {
-        if(($this->archerTag !== null) && $this->archerTag->isOnline()) {
+    public function archerTag(?HCFPlayer $player): void
+    {
+        if (($this->archerTag !== null) && $this->archerTag->isOnline()) {
             $this->archerTag->sendData($this, [
                 Entity::DATA_NAMETAG => [
                     Entity::DATA_TYPE_STRING,
@@ -357,7 +379,7 @@ class HCFPlayer extends Player {
                 ]
             ]);
         }
-        if($player !== null) {
+        if ($player !== null) {
             $player->sendData($this, [
                 Entity::DATA_NAMETAG => [
                     Entity::DATA_TYPE_STRING,
@@ -371,14 +393,16 @@ class HCFPlayer extends Player {
     /**
      * @return HCFPlayer|null
      */
-    public function getArcherTagPlayer(): ?HCFPlayer {
+    public function getArcherTagPlayer(): ?HCFPlayer
+    {
         return $this->archerTag;
     }
 
     /**
      * @param int $amount
      */
-    public function setBardEnergy(int $amount): void {
+    public function setBardEnergy(int $amount): void
+    {
         $this->bardEnergy = max(0, $amount);
         $this->bossBar->update(TextFormat::LIGHT_PURPLE . TextFormat::BOLD . "Bard Energy: " . TextFormat::RESET . TextFormat::WHITE . $this->bardEnergy, $this->bardEnergy / 100);
     }
@@ -386,49 +410,56 @@ class HCFPlayer extends Player {
     /**
      * @return int
      */
-    public function getBardEnergy(): int {
+    public function getBardEnergy(): int
+    {
         return $this->bardEnergy;
     }
 
     /**
      * @param bool $value
      */
-    public function setCheckingForVote(bool $value = true): void {
+    public function setCheckingForVote(bool $value = true): void
+    {
         $this->voteChecking = $value;
     }
 
     /**
      * @return bool
      */
-    public function isCheckingForVote(): bool {
+    public function isCheckingForVote(): bool
+    {
         return $this->voteChecking;
     }
 
     /**
      * @return bool
      */
-    public function hasVoted(): bool {
+    public function hasVoted(): bool
+    {
         return $this->voted;
     }
 
     /**
      * @param bool $value
      */
-    public function setVoted(bool $value = true): void {
+    public function setVoted(bool $value = true): void
+    {
         $this->voted = $value;
     }
 
     /**
      * @return string|null
      */
-    public function getClass(): ?string {
+    public function getClass(): ?string
+    {
         return $this->class;
     }
 
     /**
      * @param string|null $class
      */
-    public function setClass(?string $class): void {
+    public function setClass(?string $class): void
+    {
         $this->class = $class;
     }
 
@@ -437,15 +468,15 @@ class HCFPlayer extends Player {
      * @param string|null $effector
      * @param string|null $reason
      */
-    public function setMuted(?int $time, ?string $effector, ?string $reason): void {
-        $uuid = $this->getRawUniqueId();
-        if($time === null && $effector === null && $reason === null) {
+    public function setMuted(?int $time, ?string $effector, ?string $reason): void
+    {
+        $uuid = $this->getUniqueId()->toString();
+        if ($time === null && $effector === null && $reason === null) {
             $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("DELETE FROM mutes WHERE uuid = :uuid;");
             $stmt->bindParam(':uuid', $uuid);
             $stmt->execute();
             $stmt->closeCursor();
-        }
-        else {
+        } else {
             $name = $this->getName();
             $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("INSERT INTO mutes(uuid, username, effector, reason, expiration) VALUES(:uuid, :username, :effector, :reason, :expiration);");
             $stmt->bindParam(':uuid', $uuid);
@@ -464,50 +495,57 @@ class HCFPlayer extends Player {
     /**
      * @return int|null
      */
-    public function getMuteTime(): ?int {
+    public function getMuteTime(): ?int
+    {
         return $this->muteTime;
     }
 
     /**
      * @return string|null
      */
-    public function getMuteEffector(): ?string {
+    public function getMuteEffector(): ?string
+    {
         return $this->muteEffector;
     }
 
     /**
      * @return string|null
      */
-    public function getMuteReason(): ?string {
+    public function getMuteReason(): ?string
+    {
         return $this->muteReason;
     }
 
     /**
      * @return bool
      */
-    public function isTeleporting(): bool {
+    public function isTeleporting(): bool
+    {
         return $this->teleporting;
     }
 
     /**
      * @param bool $value
      */
-    public function setTeleporting(bool $value = true): void {
+    public function setTeleporting(bool $value = true): void
+    {
         $this->teleporting = $value;
     }
 
     /**
      * @return int
      */
-    public function getChatMode(): int {
+    public function getChatMode(): int
+    {
         return $this->chatMode;
     }
 
     /**
      * @return string
      */
-    public function getChatModeToString(): string {
-        switch($this->chatMode) {
+    public function getChatModeToString(): string
+    {
+        switch ($this->chatMode) {
             case self::PUBLIC:
                 return "public";
             case self::FACTION:
@@ -524,21 +562,24 @@ class HCFPlayer extends Player {
     /**
      * @param int $mode
      */
-    public function setChatMode(int $mode): void {
+    public function setChatMode(int $mode): void
+    {
         $this->chatMode = $mode;
     }
 
     /**
      * @return bool
      */
-    public function isChangingDimension(): bool {
+    public function isChangingDimension(): bool
+    {
         return $this->isChangingDimensions;
     }
 
     /**
      * @param bool $value
      */
-    public function setChangingDimensions(bool $value): void {
+    public function setChangingDimensions(bool $value): void
+    {
         $this->isChangingDimensions = $value;
     }
 
@@ -547,7 +588,7 @@ class HCFPlayer extends Player {
      */
     public function focus(?HCFPlayer $player): void
     {
-        if(($this->focus !== null) && $this->focus->isOnline()) {
+        if (($this->focus !== null) && $this->focus->isOnline()) {
             $this->focus->sendData($this, [
                 Entity::DATA_NAMETAG => [
                     Entity::DATA_TYPE_STRING,
@@ -558,7 +599,7 @@ class HCFPlayer extends Player {
                 ]
             ]);
         }
-        if($player !== null) {
+        if ($player !== null) {
             $player->sendData($this, [
                 Entity::DATA_NAMETAG => [
                     Entity::DATA_TYPE_STRING,
@@ -572,8 +613,9 @@ class HCFPlayer extends Player {
     /**
      * @param bool $value
      */
-    public function combatTag(bool $value = true): void {
-        if($value) {
+    public function combatTag(bool $value = true): void
+    {
+        if ($value) {
             $this->combatTag = time();
             return;
         }
@@ -583,42 +625,46 @@ class HCFPlayer extends Player {
     /**
      * @return bool
      */
-    public function isTagged(): bool {
+    public function isTagged(): bool
+    {
         return (time() - $this->combatTag) <= 30;
     }
 
     /**
      * @return int
      */
-    public function getCombatTagTime(): int {
+    public function getCombatTagTime(): int
+    {
         return $this->combatTag;
     }
 
     /**
      * @return string
      */
-    public function getRegion(): string {
+    public function getRegion(): string
+    {
         return $this->region;
     }
 
     /**
      * @return string
      */
-    public function getRegionByPosition(): string {
+    public function getRegionByPosition(): string
+    {
         $areaManager = $this->core->getAreaManager();
         $areas = $areaManager->getAreasInPosition($this->asPosition());
-        if($areas !== null) {
+        if ($areas !== null) {
             $region = "Unknown";
-            foreach($areas as $area) {
+            foreach ($areas as $area) {
                 $region = $area->getName() . " (PvP)";
-                if($area->getPvpFlag() === false) {
+                if ($area->getPvpFlag() === false) {
                     $region = $area->getName();
                 }
             }
             return $region;
         }
         // $this->core->getRoadManager()->isInRoad($this->asPosition()) &&
-        if($this->getLevel()->getName() === $this->getServer()->getDefaultLevel()->getName()) {
+        if ($this->getLevel()->getName() === $this->getServer()->getDefaultLevel()->getName()) {
             $region = "§cWilderness §e(§cDeathban§e)";
             /*if($this->getFloorZ() > 61 && $this->getFloorX() > -16 && $this->getFloorX() < 16 && Utils::getCompassDirection($this->getYaw() - 90) === 'S') {
                 $region = "§cSouth Road §e(§cDeathban§e)";
@@ -635,7 +681,7 @@ class HCFPlayer extends Player {
             return $region;
         }
         $claim = $this->core->getFactionManager()->getClaimInPosition($this->asPosition());
-        if($claim !== null) {
+        if ($claim !== null) {
             return $claim->getFaction()->getName();
         }
         return "§cWilderness §e(§cDeathban§e)";
@@ -646,12 +692,12 @@ class HCFPlayer extends Player {
      */
     public function getInventoryState(): int
     {
-        if (!$this->getInventory()->canAddItem(Item::get(Item::TALL_GRASS))){
+        if (!$this->getInventory()->canAddItem(Item::get(Item::TALL_GRASS))) {
             return self::INVENTORY_FULL;
         }
         $empty = true;
         foreach ($this->getInventory()->getContents(true) as $item) {
-            if ($item->getId() !== Item::AIR){
+            if ($item->getId() !== Item::AIR) {
                 $empty = false;
             }
         }
@@ -663,12 +709,12 @@ class HCFPlayer extends Player {
      */
     public function getArmorInventoryState(): int
     {
-        if (!$this->getArmorInventory()->canAddItem(Item::get(Item::TALL_GRASS))){
+        if (!$this->getArmorInventory()->canAddItem(Item::get(Item::TALL_GRASS))) {
             return self::INVENTORY_FULL;
         }
         $empty = true;
         foreach ($this->getArmorInventory()->getContents(true) as $item) {
-            if ($item->getId() !== Item::AIR){
+            if ($item->getId() !== Item::AIR) {
                 $empty = false;
             }
         }
@@ -678,28 +724,32 @@ class HCFPlayer extends Player {
     /**
      * @param string $region
      */
-    public function setRegion(string $region): void {
+    public function setRegion(string $region): void
+    {
         $this->region = $region;
     }
 
     /**
      * @return Scoreboard
      */
-    public function getScoreboard(): Scoreboard {
+    public function getScoreboard(): Scoreboard
+    {
         return $this->scoreboard;
     }
 
     /**
      * @return BossBar
      */
-    public function getBossBar(): BossBar {
+    public function getBossBar(): BossBar
+    {
         return $this->bossBar;
     }
 
     /**
      * @return FloatingTextParticle[]
      */
-    public function getFloatingTexts(): array {
+    public function getFloatingTexts(): array
+    {
         return $this->floatingTexts;
     }
 
@@ -708,7 +758,8 @@ class HCFPlayer extends Player {
      *
      * @return FloatingTextParticle|null
      */
-    public function getFloatingText(string $identifier): ?FloatingTextParticle {
+    public function getFloatingText(string $identifier): ?FloatingTextParticle
+    {
         return $this->floatingTexts[$identifier] ?? null;
     }
 
@@ -717,7 +768,8 @@ class HCFPlayer extends Player {
      * @param string $identifier
      * @param string $message
      */
-    public function addFloatingText(Position $position, string $identifier, string $message): void {
+    public function addFloatingText(Position $position, string $identifier, string $message): void
+    {
         $floatingText = new FloatingTextParticle($this, $position, $identifier, $message);
         $this->floatingTexts[$identifier] = $floatingText;
         $floatingText->sendChangesTo($this);
@@ -728,9 +780,10 @@ class HCFPlayer extends Player {
      *
      * @throws UtilsException
      */
-    public function removeFloatingText(string $identifier): void {
+    public function removeFloatingText(string $identifier): void
+    {
         $floatingText = $this->getFloatingText($identifier);
-        if($floatingText === null) {
+        if ($floatingText === null) {
             throw new UtilsException("Failed to despawn floating text: $identifier");
         }
         $floatingText->despawn($this);
@@ -740,7 +793,8 @@ class HCFPlayer extends Player {
     /**
      * @return HCF
      */
-    public function getCore(): HCF {
+    public function getCore(): HCF
+    {
         return $this->core;
     }
 
@@ -750,24 +804,25 @@ class HCFPlayer extends Player {
      * @return bool
      * @throws TranslationException
      */
-    public function load(HCF $core): bool {
+    public function load(HCF $core): bool
+    {
         $this->scoreboard = new Scoreboard($this);
         $this->bossBar = new BossBar($this);
         $this->core = $core;
-        if(!$this->isRegistered()) {
+        if (!$this->isRegistered()) {
             $this->register();
         }
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT effector, reason, expiration FROM bans WHERE uuid = :uuid;");
         $stmt->bindParam(':uuid', $uuid);
         $stmt->execute();
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $effector = $row['effector'];
             $reason = $row['reason'];
             $expiration = $row['expiration'];
-            if($effector !== null && $reason !== null) {
+            if ($effector !== null && $reason !== null) {
                 $time = "Permanent";
-                if($expiration !== null) {
+                if ($expiration !== null) {
                     $time = $expiration - time();
                     $days = floor($time / 86400);
                     $hours = floor(($time / 3600) % 24);
@@ -788,7 +843,7 @@ class HCFPlayer extends Player {
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT effector, reason, expiration FROM mutes WHERE uuid = :uuid;");
         $stmt->bindParam(':uuid', $uuid);
         $stmt->execute();
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $effector = $row['effector'];
             $reason = $row['reason'];
             $expiration = $row['expiration'];
@@ -799,7 +854,7 @@ class HCFPlayer extends Player {
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT name, x, y, z, level FROM wayPoints WHERE uuid = :uuid;");
         $stmt->bindParam(':uuid', $uuid);
         $stmt->execute();
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $name = $row['name'];
             $x = $row['x'];
             $y = $row['y'];
@@ -812,7 +867,7 @@ class HCFPlayer extends Player {
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT faction, factionRole, balance, groupId, permissions, tags, currentTag, invincibilityTime, lives, deathBanTime, reclaim, kills FROM players WHERE uuid = :uuid");
         $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $faction = $row['faction'];
             $factionRole = $row['factionRole'];
             $balance = $row['balance'];
@@ -826,9 +881,9 @@ class HCFPlayer extends Player {
             $reclaim = $row['reclaim'];
             $kills = $row['kills'];
             $this->group = $core->getGroupManager()->getGroupByIdentifier($groupId);
-            if($deathBanTime !== null) {
+            if ($deathBanTime !== null) {
                 $timeLeft = $this->group->getDeathBanTime() - (time() - $deathBanTime);
-                if($timeLeft > 0) {
+                if ($timeLeft > 0) {
                     $days = floor($timeLeft / 86400);
                     $hours = floor(($timeLeft / 3600) % 24);
                     $minutes = floor(($timeLeft / 60) % 60);
@@ -841,9 +896,9 @@ class HCFPlayer extends Player {
                     return false;
                 }
             }
-            if($faction !== null) {
+            if ($faction !== null) {
                 $faction = $core->getFactionManager()->getFaction($faction);
-                if(($faction !== null) && $faction->isInFaction($this)) {
+                if (($faction !== null) && $faction->isInFaction($this)) {
                     $this->faction = $faction;
                     $this->factionRole = $factionRole;
                 }
@@ -868,28 +923,22 @@ class HCFPlayer extends Player {
         return true;
     }
 
-    public function register(): void {
-        $uuid = $this->getRawUniqueId();
+    public function register(): void
+    {
+        $uuid = $this->getUniqueId()->toString();
         $username = $this->getName();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("INSERT INTO players(uuid, username) VALUES(:uuid, :username);");
-        $stmt->bindParam(':uuid', $uuid);
-        $stmt->bindParam(':username', $username);
-        $stmt->execute();
-        $stmt->closeCursor();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("INSERT INTO kitCooldowns(uuid, username) VALUES(:uuid, :username);");
-        $stmt->bindParam(':uuid', $uuid);
-        $stmt->bindParam(':username', $username);
-        $stmt->execute();
-        $stmt->closeCursor();
+        $this->core->getMySQLProvider()->getDatabase()->exec("INSERT INTO players(uuid, username) VALUES('$uuid', '$username');");
+        $this->core->getMySQLProvider()->getDatabase()->exec("INSERT INTO kitCooldowns(uuid, username) VALUES('$uuid', '$username');");
     }
 
     /**
      * @return bool
      */
-    public function isRegistered(): bool {
-        $uuid = $this->getRawUniqueId();
-        $result = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT username FROM players WHERE uuid = $uuid");
-        $uuid = $this->getRawUniqueId();
+    public function isRegistered(): bool
+    {
+        $uuid = $this->getUniqueId()->toString();
+        $result = $this->core->getMySQLProvider()->getDatabase()->query("SELECT username FROM players WHERE uuid = $uuid");
+        $uuid = $this->getUniqueId()->toString();
         $result2 = $this->core->getMySQLProvider()->getDatabase()->query("SELECT username FROM kitCooldowns WHERE uuid = $uuid");
         return $result !== false && $result2 !== false;
     }
@@ -897,19 +946,21 @@ class HCFPlayer extends Player {
     /**
      * @return int
      */
-    public function getBalance(): int {
+    public function getBalance(): int
+    {
         return $this->balance;
     }
 
     /**
      * @param int $amount
      */
-    public function addToBalance(int $amount): void {
+    public function addToBalance(int $amount): void
+    {
         $this->balance += $amount;
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET balance = balance + :amount WHERE uuid = :uuid");
-        $stmt->bindParam(":amount",$amount);
-        $stmt->bindParam(":uuid",$uuid);
+        $stmt->bindParam(":amount", $amount);
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
         $stmt->closeCursor();
     }
@@ -917,12 +968,13 @@ class HCFPlayer extends Player {
     /**
      * @param int $amount
      */
-    public function subtractFromBalance(int $amount): void {
+    public function subtractFromBalance(int $amount): void
+    {
         $this->balance -= $amount;
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET balance = balance - :amount WHERE uuid = :uuid");
-        $stmt->bindParam(":amount",$amount);
-        $stmt->bindParam(":uuid",$uuid);
+        $stmt->bindParam(":amount", $amount);
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
         $stmt->closeCursor();
     }
@@ -930,12 +982,13 @@ class HCFPlayer extends Player {
     /**
      * @param int $amount
      */
-    public function setBalance(int $amount): void {
+    public function setBalance(int $amount): void
+    {
         $this->balance = $amount;
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET balance = :amount WHERE uuid = :uuid");
-        $stmt->bindParam(":amount",$amount);
-        $stmt->bindParam(":uuid",$uuid);
+        $stmt->bindParam(":amount", $amount);
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
         $stmt->closeCursor();
     }
@@ -943,20 +996,22 @@ class HCFPlayer extends Player {
     /**
      * @return Group
      */
-    public function getGroup(): Group {
+    public function getGroup(): Group
+    {
         return $this->group;
     }
 
     /**
      * @param Group $group
      */
-    public function setGroup(Group $group): void {
+    public function setGroup(Group $group): void
+    {
         $this->group = $group;
         $groupId = $group->getIdentifier();
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET groupId = :groupId WHERE uuid = :uuid");
-        $stmt->bindParam(":groupId",$groupId);
-        $stmt->bindParam(":uuid",$uuid);
+        $stmt->bindParam(":groupId", $groupId);
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
         $stmt->closeCursor();
     }
@@ -966,11 +1021,12 @@ class HCFPlayer extends Player {
      *
      * @return bool
      */
-    public function hasPermission($name): bool {
-        if(in_array($name, $this->permissions, true)) {
+    public function hasPermission($name): bool
+    {
+        if (in_array($name, $this->permissions, true)) {
             return true;
         }
-        if(in_array($name, $this->group->getPermissions(), true)) {
+        if (($this->group !== null) && in_array($name, $this->group->getPermissions(), true)) {
             return true;
         }
         return parent::hasPermission($name);
@@ -979,14 +1035,15 @@ class HCFPlayer extends Player {
     /**
      * @param string $permission
      */
-    public function addPermission(string $permission): void {
+    public function addPermission(string $permission): void
+    {
         $this->permissions[] = $permission;
         $this->permissions = array_unique($this->permissions);
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $permissions = implode(",", $this->permissions);
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET permissions = :permissions WHERE uuid = :uuid");
-        $stmt->bindParam(":permissions",$permissions);
-        $stmt->bindParam(":uuid",$uuid);
+        $stmt->bindParam(":permissions", $permissions);
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
         $stmt->closeCursor();
     }
@@ -994,16 +1051,18 @@ class HCFPlayer extends Player {
     /**
      * @return array
      */
-    public function getTags(): array {
+    public function getTags(): array
+    {
         return $this->tags;
     }
 
     /**
      * @param string $tag
      */
-    public function setCurrentTag(string $tag): void {
+    public function setCurrentTag(string $tag): void
+    {
         $this->currentTag = $tag;
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET currentTag = :tag WHERE uuid = :uuid");
         $stmt->bindParam(":tag", $tag);
         $stmt->bindParam(":uuid", $uuid);
@@ -1015,13 +1074,14 @@ class HCFPlayer extends Player {
     /**
      * @param string $tag
      */
-    public function addTag(string $tag): void {
+    public function addTag(string $tag): void
+    {
         $this->tags[] = $tag;
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $tags = implode(",", $this->tags);
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET tags = :tags WHERE uuid = :uuid");
-        $stmt->bindParam(":tags",$tags);
-        $stmt->bindParam(":uuid",$uuid);
+        $stmt->bindParam(":tags", $tags);
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
         $stmt->closeCursor();
     }
@@ -1029,21 +1089,23 @@ class HCFPlayer extends Player {
     /**
      * @return Faction|null
      */
-    public function getFaction(): ?Faction {
+    public function getFaction(): ?Faction
+    {
         return $this->faction;
     }
 
     /**
      * @param Faction|null $faction
      */
-    public function setFaction(?Faction $faction): void {
+    public function setFaction(?Faction $faction): void
+    {
         $this->faction = $faction;
         /*$this->setNameTag($this->getGroup()->getTagFormatFor($this, [
             "faction_rank" => $this->getFactionRoleToString(),
             "faction" => ($faction = $this->getFaction()) instanceof Faction ? $faction->getName() : ""
         ]));*/
         $factionName = $faction instanceof Faction ? $faction->getName() : null;
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET faction = :faction WHERE uuid = :uuid");
         $stmt->bindParam(":faction", $factionName);
         $stmt->bindParam(":uuid", $uuid);
@@ -1054,15 +1116,17 @@ class HCFPlayer extends Player {
     /**
      * @return int|null
      */
-    public function getFactionRole(): ?int {
+    public function getFactionRole(): ?int
+    {
         return $this->factionRole;
     }
 
     /**
      * @return string
      */
-    public function getFactionRoleToString(): string {
-        switch($this->factionRole) {
+    public function getFactionRoleToString(): string
+    {
+        switch ($this->factionRole) {
             case Faction::RECRUIT:
                 return "-";
             case Faction::OFFICER:
@@ -1078,13 +1142,14 @@ class HCFPlayer extends Player {
     /**
      * @param int|null $role
      */
-    public function setFactionRole(?int $role): void {
+    public function setFactionRole(?int $role): void
+    {
         $this->factionRole = $role;
         /*$this->setNameTag($this->getGroup()->getTagFormatFor($this, [
             "faction_rank" => $this->getFactionRoleToString(),
             "faction" => ($faction = $this->getFaction()) instanceof Faction ? $faction->getName() : ""
         ]));*/
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET factionRole = :role WHERE uuid = :uuid");
         $stmt->bindParam(":role", $role);
         $stmt->bindParam(":uuid", $uuid);
@@ -1095,9 +1160,10 @@ class HCFPlayer extends Player {
     /**
      * @param int|null $time
      */
-    public function setInvincible(?int $time): void {
+    public function setInvincible(?int $time): void
+    {
         $this->invincibilityTime = $time ?? 3600;
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET invincibilityTime = :invincibilityTime WHERE uuid = :uuid");
         $stmt->bindParam(":invincibilityTime", $this->invincibilityTime);
         $stmt->bindParam(":uuid", $uuid);
@@ -1108,43 +1174,48 @@ class HCFPlayer extends Player {
     /**
      * @return bool
      */
-    public function isInvincible(): bool {
+    public function isInvincible(): bool
+    {
         return $this->invincibilityTime > 0;
     }
 
     /**
      * @return bool
      */
-    public function canDeductInvincibilityTime(): bool {
+    public function canDeductInvincibilityTime(): bool
+    {
         $areas = $this->core->getAreaManager()->getAreasInPosition($this);
-        if($areas === null) {
+        if ($areas === null) {
             return true;
         }
-        foreach($areas as $area) {
-            if($area->getPvpFlag() === false) {
+        foreach ($areas as $area) {
+            if ($area->getPvpFlag() === false) {
                 return false;
             }
         }
         return $this->invincibilityTime > 0;
     }
 
-    public function subtractInvincibilityTime(): void {
+    public function subtractInvincibilityTime(): void
+    {
         --$this->invincibilityTime;
     }
 
     /**
      * @return int
      */
-    public function getInvincibilityTime(): int {
+    public function getInvincibilityTime(): int
+    {
         return $this->invincibilityTime;
     }
 
     /**
      * @param int $lives
      */
-    public function addLives(int $lives): void {
+    public function addLives(int $lives): void
+    {
         $this->lives += $lives;
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET lives = :lives WHERE uuid = :uuid");
         $stmt->bindParam(":lives", $this->lives);
         $stmt->bindParam(":uuid", $uuid);
@@ -1152,11 +1223,12 @@ class HCFPlayer extends Player {
         $stmt->closeCursor();
     }
 
-    public function removeLife(): void {
-        if($this->lives > 0) {
+    public function removeLife(): void
+    {
+        if ($this->lives > 0) {
             --$this->lives;
         }
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET lives = :lives WHERE uuid = :uuid");
         $stmt->bindParam(":lives", $this->lives);
         $stmt->bindParam(":uuid", $uuid);
@@ -1167,11 +1239,13 @@ class HCFPlayer extends Player {
     /**
      * @return int
      */
-    public function getLives(): int {
+    public function getLives(): int
+    {
         return $this->lives;
     }
 
-    public function playXpLevelUpSound(): void {
+    public function playXpLevelUpSound(): void
+    {
         $this->addXp(1000);
         $this->subtractXp(1000);
     }
@@ -1179,19 +1253,22 @@ class HCFPlayer extends Player {
     /**
      * @param int $amount
      */
-    public function addKills(int $amount = 1): void {
+    public function addKills(int $amount = 1): void
+    {
         $this->kills += $amount;
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET kills = :kills WHERE uuid = :uuid");
         $stmt->bindParam(":kills", $this->kills);
         $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
         $stmt->closeCursor();
     }
+
     /**
      * @return int
      */
-    public function getKills(): int {
+    public function getKills(): int
+    {
         return $this->kills;
     }
 
@@ -1200,18 +1277,20 @@ class HCFPlayer extends Player {
      *
      * @return WayPoint|null
      */
-    public function getWayPoint(string $name): ?WayPoint {
+    public function getWayPoint(string $name): ?WayPoint
+    {
         return $this->wayPoints[$name] ?? null;
     }
 
     /**
      * @param WayPoint $wayPoint
      */
-    public function addWayPoint(WayPoint $wayPoint): void {
+    public function addWayPoint(WayPoint $wayPoint): void
+    {
         $name = $wayPoint->getName();
         $this->wayPoints[$name] = $wayPoint;
         $username = $this->getName();
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $x = $this->getFloorX();
         $y = $this->getFloorY();
         $z = $this->getFloorZ();
@@ -1231,12 +1310,13 @@ class HCFPlayer extends Player {
     /**
      * @param string $name
      */
-    public function removeWayPoint(string $name): void {
+    public function removeWayPoint(string $name): void
+    {
         unset($this->wayPoints[$name]);
-        $uuid = $this->getRawUniqueId();
+        $uuid = $this->getUniqueId()->toString();
         $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("DELETE FROM wayPoints WHERE uuid = :uuid AND name = :name");
-        $stmt->bindParam(":uuid",$uuid);
-        $stmt->bindParam(":name",$name);
+        $stmt->bindParam(":uuid", $uuid);
+        $stmt->bindParam(":name", $name);
         $stmt->execute();
         $stmt->closeCursor();
     }
@@ -1244,21 +1324,24 @@ class HCFPlayer extends Player {
     /**
      * @return WayPoint[]
      */
-    public function getWayPoints(): array {
+    public function getWayPoints(): array
+    {
         return $this->wayPoints;
     }
 
     /**
      * @return bool
      */
-    public function isShowingWayPoint(): bool {
+    public function isShowingWayPoint(): bool
+    {
         return $this->showWayPoint;
     }
 
     /**
      * @param bool $value
      */
-    public function setShowWayPoint(bool $value = true): void {
+    public function setShowWayPoint(bool $value = true): void
+    {
         $this->showWayPoint = $value;
     }
 }

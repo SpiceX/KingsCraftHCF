@@ -25,7 +25,8 @@ class MySQLProvider
         $this->core->saveDefaultConfig();
         //$this->database = new mysqli("remotemysql.com", "811shf04vc", "pTOtax46Sj", "811shf04vc");
         //$this->database = new mysqli("na02-db.cus.mc-panel.net", "db_104947", "dcdce90156", "db_104947");
-        $this->database = new PDO("mysql:host=na02-db.cus.mc-panel.net;dbname=db_104947", "db_104947", "dcdce90156");
+        //$this->database = new PDO("mysql:host=na02-db.cus.mc-panel.net;dbname=db_104947", "db_104947", "dcdce90156");
+        $this->database = new PDO("mysql:host=54.158.123.38;dbname=db_104947;charset=utf8", "admin", "hcf5000",);
         //$this->database = new mysqli("54.158.123.38", "admin", "hcf5000", "db_104947");
         //$this->database = new mysqli("207.244.230.77", "root", "Ae4Q3vBGoU7fdHL", "db_104947");
         $this->init();
@@ -33,7 +34,7 @@ class MySQLProvider
 
     public function init(): void
     {
-        $this->database->exec("CREATE TABLE IF NOT EXISTS players(uuid VARCHAR(36) PRIMARY KEY, username VARCHAR(16), faction VARCHAR(16) DEFAULT NULL, factionRole TINYINT DEFAULT NULL, balance BIGINT DEFAULT 0, groupId TINYINT DEFAULT 0, permissions VARCHAR(255) DEFAULT '', tags VARCHAR(255) DEFAULT '', currentTag VARCHAR(150) DEFAULT '', invincibilityTime INT DEFAULT 3600, lives INT DEFAULT 0, deathBanTime INT DEFAULT NULL, reclaim TINYINT DEFAULT 0, kills SMALLINT DEFAULT 0);");
+        $this->database->exec("CREATE TABLE IF NOT EXISTS players(uuid VARCHAR(40) PRIMARY KEY, username VARCHAR(16), faction VARCHAR(16) DEFAULT NULL, factionRole TINYINT DEFAULT NULL, balance BIGINT DEFAULT 0, groupId TINYINT DEFAULT 0, permissions VARCHAR(255) DEFAULT '', tags VARCHAR(255) DEFAULT '', currentTag VARCHAR(150) DEFAULT '', invincibilityTime INT DEFAULT 3600, lives INT DEFAULT 0, deathBanTime INT DEFAULT NULL, reclaim TINYINT DEFAULT 0, kills SMALLINT DEFAULT 0);");
         $this->database->exec("CREATE TABLE IF NOT EXISTS shops(x SMALLINT, y SMALLINT, z SMALLINT, level VARCHAR(30), item BLOB, type TINYINT, price INT);");
         $this->database->exec("CREATE TABLE IF NOT EXISTS claims(faction VARCHAR(36), chunkX SMALLINT(6), chunkZ SMALLINT(6));");
         $this->database->exec("CREATE TABLE IF NOT EXISTS `rewards` (
@@ -41,7 +42,7 @@ class MySQLProvider
                                               `username` varchar(16) DEFAULT NULL,
                                               `items` blob DEFAULT NULL,
                                               PRIMARY KEY (`xuid`)
-                                            ) ENGINE=InnoDB DEFAULT CHARSET=latin1;"
+                                            ) ENGINE=InnoDB;"
         );
         $this->database->exec("CREATE TABLE IF NOT EXISTS `crates` (
                                               `xuid` varchar(36) NOT NULL,
@@ -51,14 +52,14 @@ class MySQLProvider
                                               `mythic` smallint(6) NOT NULL DEFAULT 0,
                                               `ultra` smallint(6) NOT NULL DEFAULT 0,
                                               PRIMARY KEY (`xuid`)
-                                            ) ENGINE=InnoDB DEFAULT CHARSET=latin1;"
+                                            ) ENGINE=InnoDB;"
         );
         $this->database->exec("CREATE TABLE IF NOT EXISTS `inboxes` (
                                               `xuid` varchar(36) NOT NULL,
                                               `username` varchar(16) DEFAULT NULL,
                                               `items` blob DEFAULT NULL,
                                               PRIMARY KEY (`xuid`)
-                                            ) ENGINE=InnoDB DEFAULT CHARSET=latin1;"
+                                            ) ENGINE=InnoDB;"
         );
         $this->database->exec("CREATE TABLE IF NOT EXISTS `extraData` (
                                               `xuid` varchar(36) NOT NULL,
@@ -66,7 +67,7 @@ class MySQLProvider
                                               `permissions` varchar(600) DEFAULT '',
                                               `rewardCooldown` bigint(20) DEFAULT 0,
                                               PRIMARY KEY (`xuid`)
-                                            ) ENGINE=InnoDB DEFAULT CHARSET=latin1;"
+                                            ) ENGINE=InnoDB;"
         );
         $this->database->exec("CREATE TABLE IF NOT EXISTS `homes` (`xuid` varchar(36) NOT NULL,
                                               `username` varchar(16) DEFAULT NULL,
@@ -75,7 +76,7 @@ class MySQLProvider
                                               `y` smallint(6) NOT NULL,
                                               `z` smallint(6) NOT NULL,
                                               `level` varchar(30) NOT NULL
-                                            ) ENGINE=InnoDB DEFAULT CHARSET=latin1;"
+                                            ) ENGINE=InnoDB;"
         );
         $this->database->exec("CREATE TABLE IF NOT EXISTS ipAddress(uuid VARCHAR(36), username VARCHAR(16), ipAddress VARCHAR(20), riskLevel TINYINT);");
         $this->database->exec("CREATE TABLE IF NOT EXISTS bans(uuid VARCHAR(36) PRIMARY KEY, username VARCHAR(16), effector VARCHAR(16) NOT NULL, reason VARCHAR(200) NOT NULL, expiration INT DEFAULT NULL);");

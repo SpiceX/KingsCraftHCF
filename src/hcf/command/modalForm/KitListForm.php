@@ -43,7 +43,7 @@ class KitListForm extends MenuForm {
         if(!$player instanceof HCFPlayer) {
             return;
         }
-        $uuid = $player->getRawUniqueId();
+        $uuid = $player->getUniqueId()->toString();
         $name = $this->getOption($selectedOption)->getText();
         $time = time();
         $lowercaseName = strtolower($name);
