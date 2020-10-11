@@ -6,6 +6,7 @@ use hcf\HCF;
 use hcf\HCFPlayer;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
+use PDO;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Villager;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
@@ -36,6 +37,7 @@ class LogoutVillager extends Villager {
      * @param int $tickDiff
      *
      * @return bool
+     * @noinspection NullPointerExceptionInspection
      */
     public function entityBaseTick(int $tickDiff = 1): bool {
         parent::entityBaseTick($tickDiff);
@@ -44,7 +46,7 @@ class LogoutVillager extends Villager {
             $this->flagForDespawn();
             return false;
         }
-        if((!$this->isAlive()) && (!$this->closed)) {
+        if((!$this->closed) && (!$this->isAlive())) {
             $this->flagForDespawn();
             return false;
         }
@@ -77,53 +79,60 @@ class LogoutVillager extends Villager {
             return;
         }
         $server = HCF::getInstance()->getServer();
-        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("SELECT kills FROM players WHERE username = ?");
-        $stmt->bind_param("s", $this->name);
+        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("SELECT kills FROM players WHERE username = :username");
+        $stmt->bindParam(":username", $this->name);
         $stmt->execute();
-        $stmt->bind_result($kills);
-        $stmt->fetch();
-        $stmt->close();
-        $message = Translation::getMessage("death", [
-            "name" => TextFormat::GREEN . $this->name . TextFormat::DARK_GRAY . "[" . TextFormat::DARK_GREEN . TextFormat::BOLD . $kills . TextFormat::RESET . TextFormat::DARK_GRAY . "]",
-        ]);
-        if($source instanceof EntityDamageByEntityEvent) {
-            $killer = $source->getDamager();
-            if($killer instanceof HCFPlayer) {
-                if($killer->getFaction() !== null and $killer->getFaction()->isInFaction($this->name) === true) {
-                    $source->setCancelled();
-                    $killer->sendMessage(Translation::getMessage("attackFactionAssociate"));
-                    return;
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+            $kills = $row['kills'];
+            $message = Translation::getMessage("death", [
+                "name" => TextFormat::GREEN . $this->name . TextFormat::DARK_GRAY . "[" . TextFormat::DARK_GREEN . TextFormat::BOLD . $kills . TextFormat::RESET . TextFormat::DARK_GRAY . "]",
+            ]);
+            if($source instanceof EntityDamageByEntityEvent) {
+                $killer = $source->getDamager();
+                if($killer instanceof HCFPlayer) {
+                    if($killer->getFaction() !== null && $killer->getFaction()->isInFaction($this->name) === true) {
+                        $source->setCancelled();
+                        $killer->sendMessage(Translation::getMessage("attackFactionAssociate"));
+                        return;
+                    }
+                    $killer->addKills();
+                    $message = Translation::getMessage("deathByPlayer", [
+                        "name" => TextFormat::GREEN . $this->name . TextFormat::DARK_GRAY . "[" . TextFormat::DARK_GREEN . TextFormat::BOLD . $kills . TextFormat::RESET . TextFormat::DARK_GRAY . "]",
+                        "killer" => TextFormat::RED . $killer->getName() . TextFormat::DARK_GRAY . "[" . TextFormat::DARK_RED . TextFormat::BOLD . $killer->getKills() . TextFormat::RESET . TextFormat::DARK_GRAY . "]"
+                    ]);
                 }
-                $killer->addKills();
-                $message = Translation::getMessage("deathByPlayer", [
-                    "name" => TextFormat::GREEN . $this->name . TextFormat::DARK_GRAY . "[" . TextFormat::DARK_GREEN . TextFormat::BOLD . $kills . TextFormat::RESET . TextFormat::DARK_GRAY . "]",
-                    "killer" => TextFormat::RED . $killer->getName() . TextFormat::DARK_GRAY . "[" . TextFormat::DARK_RED . TextFormat::BOLD . $killer->getKills() . TextFormat::RESET . TextFormat::DARK_GRAY . "]"
-                ]);
             }
+            $server->broadcastMessage($message);
         }
-        $server->broadcastMessage($message);
+        $stmt->closeCursor();
+        
         $provider = HCF::getInstance()->getMySQLProvider();
         $username = $this->name;
         $time = 3600;
-        $stmt = $provider->getDatabase()->prepare("SELECT lives FROM players WHERE username = ?");
-        $stmt->bind_param("s", $username);
+        $stmt = $provider->getDatabase()->prepare("SELECT lives FROM players WHERE username = :username");
+        $stmt->bindParam(":username", $username);
         $stmt->execute();
-        $stmt->bind_result($lives);
-        $stmt->fetch();
-        $stmt->close();
-        if($lives > 0) {
-            $stmt = $provider->getDatabase()->prepare("UPDATE players SET lives = lives - 1, invincibilityTime = ? WHERE username = ?");
-            $stmt->bind_param("si", $time, $username);
-            $stmt->execute();
-            $stmt->close();
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+            $lives = $row['lives'];
+            if($lives > 0) {
+                $stmt = $provider->getDatabase()->prepare("UPDATE players SET lives = lives - 1, invincibilityTime = :invincibilityTime WHERE username = :username");
+                $stmt->bindParam(":invincibilityTime",$time);
+                $stmt->bindParam(":username",$username);
+                $stmt->execute();
+                $stmt->closeCursor();
+            }
+            else {
+                $timestamp = time();
+                $stmt = $provider->getDatabase()->prepare("UPDATE players SET deathBanTime = :deathBanTime, invincibilityTime = :invincibilityTime WHERE username = :username");
+                $stmt->bindParam(":deathBanTime", $timestamp);
+                $stmt->bindParam(":invincibilityTime", $time);
+                $stmt->bindParam(":username",$username);
+                $stmt->execute();
+                $stmt->closeCursor();
+            }
         }
-        else {
-            $timestamp = time();
-            $stmt = $provider->getDatabase()->prepare("UPDATE players SET deathBanTime = ?, invincibilityTime = ? WHERE username = ?");
-            $stmt->bind_param("iis", $timestamp, $time, $username);
-            $stmt->execute();
-            $stmt->close();
-        }
+        $stmt->closeCursor();
+
         $drops = [];
         $namedTag = $server->getOfflinePlayerData($this->name);
         $items = $namedTag->getListTag("Inventory")->getAllValues();

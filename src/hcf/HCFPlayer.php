@@ -12,6 +12,7 @@ use libs\utils\BossBar;
 use libs\utils\FloatingTextParticle;
 use libs\utils\Scoreboard;
 use libs\utils\UtilsException;
+use PDO;
 use pocketmine\entity\Entity;
 use pocketmine\item\Item;
 use pocketmine\level\Position;
@@ -439,17 +440,21 @@ class HCFPlayer extends Player {
     public function setMuted(?int $time, ?string $effector, ?string $reason): void {
         $uuid = $this->getRawUniqueId();
         if($time === null && $effector === null && $reason === null) {
-            $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("DELETE FROM mutes WHERE uuid = ?;");
-            $stmt->bind_param("s", $uuid);
+            $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("DELETE FROM mutes WHERE uuid = :uuid;");
+            $stmt->bindParam(':uuid', $uuid);
             $stmt->execute();
-            $stmt->close();
+            $stmt->closeCursor();
         }
         else {
             $name = $this->getName();
-            $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("INSERT INTO mutes(uuid, username, effector, reason, expiration) VALUES(?, ?, ?, ?, ?);");
-            $stmt->bind_param("ssssi", $uuid, $name, $effector, $reason, $time);
+            $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("INSERT INTO mutes(uuid, username, effector, reason, expiration) VALUES(:uuid, :username, :effector, :reason, :expiration);");
+            $stmt->bindParam(':uuid', $uuid);
+            $stmt->bindParam(':username', $name);
+            $stmt->bindParam(':effector', $effector);
+            $stmt->bindParam(':reason', $reason);
+            $stmt->bindParam(':expiration', $time);
             $stmt->execute();
-            $stmt->close();
+            $stmt->closeCursor();
         }
         $this->muteTime = $time;
         $this->muteEffector = $effector;
@@ -753,102 +758,129 @@ class HCFPlayer extends Player {
             $this->register();
         }
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT effector, reason, expiration FROM bans WHERE uuid = ?;");
-        $stmt->bind_param("s", $uuid);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT effector, reason, expiration FROM bans WHERE uuid = :uuid;");
+        $stmt->bindParam(':uuid', $uuid);
         $stmt->execute();
-        $stmt->bind_result($effector, $reason, $expiration);
-        $stmt->fetch();
-        $stmt->close();
-        if($effector !== null && $reason !== null) {
-            $time = "Permanent";
-            if($expiration !== null) {
-                $time = $expiration - time();
-                $days = floor($time / 86400);
-                $hours = floor(($time / 3600) % 24);
-                $minutes = floor(($time / 60) % 60);
-                $seconds = $time % 60;
-                $time = "$days days, $hours hours, $minutes minutes, $seconds seconds";
-            }
-            $this->close(null, Translation::getMessage("banMessage", [
-                "name" => $effector,
-                "reason" => $reason,
-                "time" => $time
-            ]));
-            return false;
-        }
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT effector, reason, expiration FROM mutes WHERE uuid = ?;");
-        $stmt->bind_param("s", $uuid);
-        $stmt->execute();
-        $stmt->bind_result($effector, $reason, $expiration);
-        $stmt->fetch();
-        $stmt->close();
-        $this->setMuted($expiration, $effector, $reason);
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT name, x, y, z, level FROM wayPoints WHERE uuid = ?;");
-        $stmt->bind_param("s", $uuid);
-        $stmt->execute();
-        $stmt->bind_result($name, $x, $y, $z, $levelName);
-        while($stmt->fetch()) {
-            $level = $core->getServer()->getLevelByName($levelName);
-            $this->wayPoints[$name] = new WayPoint($name, $x, $y, $z, $level);
-        }
-        $stmt->close();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT faction, factionRole, balance, groupId, permissions, tags, currentTag, invincibilityTime, lives, deathBanTime, reclaim, kills FROM players WHERE uuid = ?");
-        $stmt->bind_param("s", $uuid);
-        $stmt->execute();
-        $stmt->bind_result($faction, $factionRole, $balance, $groupId, $permissions, $tags, $currentTag, $invincibilityTime, $lives, $deathBanTime, $reclaim, $kills);
-        $stmt->fetch();
-        $stmt->close();
-        $this->group = $core->getGroupManager()->getGroupByIdentifier($groupId);
-        if($deathBanTime !== null) {
-            $timeLeft = $this->group->getDeathBanTime() - (time() - $deathBanTime);
-            if($timeLeft > 0) {
-                $days = floor($timeLeft / 86400);
-                $hours = floor(($timeLeft / 3600) % 24);
-                $minutes = floor(($timeLeft / 60) % 60);
-                $seconds = $timeLeft % 60;
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+            $effector = $row['effector'];
+            $reason = $row['reason'];
+            $expiration = $row['expiration'];
+            if($effector !== null && $reason !== null) {
+                $time = "Permanent";
+                if($expiration !== null) {
+                    $time = $expiration - time();
+                    $days = floor($time / 86400);
+                    $hours = floor(($time / 3600) % 24);
+                    $minutes = floor(($time / 60) % 60);
+                    $seconds = $time % 60;
+                    $time = "$days days, $hours hours, $minutes minutes, $seconds seconds";
+                }
                 $this->close(null, Translation::getMessage("banMessage", [
-                    "name" => "Operator",
-                    "reason" => "Death ban",
-                    "time" => "$days days, $hours hours, $minutes minutes, $seconds seconds"
+                    "name" => $effector,
+                    "reason" => $reason,
+                    "time" => $time
                 ]));
                 return false;
             }
         }
-        if($faction !== null) {
-            $faction = $core->getFactionManager()->getFaction($faction);
-            if(($faction !== null) && $faction->isInFaction($this)) {
-                $this->faction = $faction;
-                $this->factionRole = $factionRole;
-            }
+        $stmt->closeCursor();
+
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT effector, reason, expiration FROM mutes WHERE uuid = :uuid;");
+        $stmt->bindParam(':uuid', $uuid);
+        $stmt->execute();
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+            $effector = $row['effector'];
+            $reason = $row['reason'];
+            $expiration = $row['expiration'];
+            $this->setMuted($expiration, $effector, $reason);
         }
-        $this->balance = $balance;
-        $this->permissions = explode(",", $permissions);
-        $this->tags = explode(",", $tags);
-        $this->currentTag = $currentTag;
-        $this->reclaim = (bool)$reclaim;
-        $this->setInvincible($invincibilityTime);
+        $stmt->closeCursor();
+
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT name, x, y, z, level FROM wayPoints WHERE uuid = :uuid;");
+        $stmt->bindParam(':uuid', $uuid);
+        $stmt->execute();
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+            $name = $row['name'];
+            $x = $row['x'];
+            $y = $row['y'];
+            $z = $row['z'];
+            $levelName = $row['levelName'];
+            $level = $core->getServer()->getLevelByName($levelName);
+            $this->wayPoints[$name] = new WayPoint($name, $x, $y, $z, $level);
+        }
+        $stmt->closeCursor();
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("SELECT faction, factionRole, balance, groupId, permissions, tags, currentTag, invincibilityTime, lives, deathBanTime, reclaim, kills FROM players WHERE uuid = :uuid");
+        $stmt->bindParam(":uuid", $uuid);
+        $stmt->execute();
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+            $faction = $row['faction'];
+            $factionRole = $row['factionRole'];
+            $balance = $row['balance'];
+            $groupId = $row['groupId'];
+            $permissions = $row['permissions'];
+            $tags = $row['tags'];
+            $currentTag = $row['currentTag'];
+            $invincibilityTime = $row['invincibilityTime'];
+            $lives = $row['lives'];
+            $deathBanTime = $row['deathBanTime'];
+            $reclaim = $row['reclaim'];
+            $kills = $row['kills'];
+            $this->group = $core->getGroupManager()->getGroupByIdentifier($groupId);
+            if($deathBanTime !== null) {
+                $timeLeft = $this->group->getDeathBanTime() - (time() - $deathBanTime);
+                if($timeLeft > 0) {
+                    $days = floor($timeLeft / 86400);
+                    $hours = floor(($timeLeft / 3600) % 24);
+                    $minutes = floor(($timeLeft / 60) % 60);
+                    $seconds = $timeLeft % 60;
+                    $this->close(null, Translation::getMessage("banMessage", [
+                        "name" => "Operator",
+                        "reason" => "Death ban",
+                        "time" => "$days days, $hours hours, $minutes minutes, $seconds seconds"
+                    ]));
+                    return false;
+                }
+            }
+            if($faction !== null) {
+                $faction = $core->getFactionManager()->getFaction($faction);
+                if(($faction !== null) && $faction->isInFaction($this)) {
+                    $this->faction = $faction;
+                    $this->factionRole = $factionRole;
+                }
+            }
+            $this->balance = $balance;
+            $this->permissions = explode(",", $permissions);
+            $this->tags = explode(",", $tags);
+            $this->currentTag = $currentTag;
+            $this->reclaim = (bool)$reclaim;
+            $this->setInvincible($invincibilityTime);
+            $this->lives = $lives;
+            $this->kills = $kills;
+        }
+        $stmt->closeCursor();
+
         //$this->setDisplayName($this->getDisplayName() . " " . $currentTag);
         /*$this->setNameTag($this->getGroup()->getTagFormatFor($this, [
             "faction_rank" => $this->getFactionRoleToString(),
             "faction" => ($faction = $this->getFaction()) instanceof Faction ? $faction->getName() : ""
         ]));*/
         //$this->setScoreTag(TextFormat::WHITE . floor($this->getHealth()) . TextFormat::RED . TextFormat::BOLD . " HP");
-        $this->lives = $lives;
-        $this->kills = $kills;
         return true;
     }
 
     public function register(): void {
         $uuid = $this->getRawUniqueId();
         $username = $this->getName();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("INSERT INTO players(uuid, username) VALUES(?, ?);");
-        $stmt->bind_param("ss", $uuid, $username);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("INSERT INTO players(uuid, username) VALUES(:uuid, :username);");
+        $stmt->bindParam(':uuid', $uuid);
+        $stmt->bindParam(':username', $username);
         $stmt->execute();
-        $stmt->close();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("INSERT INTO kitCooldowns(uuid, username) VALUES(?, ?);");
-        $stmt->bind_param("ss", $uuid, $username);
+        $stmt->closeCursor();
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("INSERT INTO kitCooldowns(uuid, username) VALUES(:uuid, :username);");
+        $stmt->bindParam(':uuid', $uuid);
+        $stmt->bindParam(':username', $username);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -875,10 +907,11 @@ class HCFPlayer extends Player {
     public function addToBalance(int $amount): void {
         $this->balance += $amount;
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET balance = balance + ? WHERE uuid = ?");
-        $stmt->bind_param("is", $amount, $uuid);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET balance = balance + :amount WHERE uuid = :uuid");
+        $stmt->bindParam(":amount",$amount);
+        $stmt->bindParam(":uuid",$uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -887,10 +920,11 @@ class HCFPlayer extends Player {
     public function subtractFromBalance(int $amount): void {
         $this->balance -= $amount;
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET balance = balance - ? WHERE uuid = ?");
-        $stmt->bind_param("is", $amount, $uuid);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET balance = balance - :amount WHERE uuid = :uuid");
+        $stmt->bindParam(":amount",$amount);
+        $stmt->bindParam(":uuid",$uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -899,10 +933,11 @@ class HCFPlayer extends Player {
     public function setBalance(int $amount): void {
         $this->balance = $amount;
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET balance = ? WHERE uuid = ?");
-        $stmt->bind_param("is", $amount, $uuid);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET balance = :amount WHERE uuid = :uuid");
+        $stmt->bindParam(":amount",$amount);
+        $stmt->bindParam(":uuid",$uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -919,10 +954,11 @@ class HCFPlayer extends Player {
         $this->group = $group;
         $groupId = $group->getIdentifier();
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET groupId = ? WHERE uuid = ?");
-        $stmt->bind_param("is", $groupId, $uuid);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET groupId = :groupId WHERE uuid = :uuid");
+        $stmt->bindParam(":groupId",$groupId);
+        $stmt->bindParam(":uuid",$uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -948,10 +984,11 @@ class HCFPlayer extends Player {
         $this->permissions = array_unique($this->permissions);
         $uuid = $this->getRawUniqueId();
         $permissions = implode(",", $this->permissions);
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET permissions = ? WHERE uuid = ?");
-        $stmt->bind_param("ss", $permissions, $uuid);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET permissions = :permissions WHERE uuid = :uuid");
+        $stmt->bindParam(":permissions",$permissions);
+        $stmt->bindParam(":uuid",$uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -967,10 +1004,11 @@ class HCFPlayer extends Player {
     public function setCurrentTag(string $tag): void {
         $this->currentTag = $tag;
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET currentTag = ? WHERE uuid = ?");
-        $stmt->bind_param("ss", $tag, $uuid);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET currentTag = :tag WHERE uuid = :uuid");
+        $stmt->bindParam(":tag", $tag);
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
         $this->setDisplayName($this->getName() . " " . $tag);
     }
 
@@ -981,10 +1019,11 @@ class HCFPlayer extends Player {
         $this->tags[] = $tag;
         $uuid = $this->getRawUniqueId();
         $tags = implode(",", $this->tags);
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET tags = ? WHERE uuid = ?");
-        $stmt->bind_param("ss", $tags, $uuid);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET tags = :tags WHERE uuid = :uuid");
+        $stmt->bindParam(":tags",$tags);
+        $stmt->bindParam(":uuid",$uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -1005,10 +1044,11 @@ class HCFPlayer extends Player {
         ]));*/
         $factionName = $faction instanceof Faction ? $faction->getName() : null;
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET faction = ? WHERE uuid = ?");
-        $stmt->bind_param("ss", $factionName, $uuid);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET faction = :faction WHERE uuid = :uuid");
+        $stmt->bindParam(":faction", $factionName);
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -1045,10 +1085,11 @@ class HCFPlayer extends Player {
             "faction" => ($faction = $this->getFaction()) instanceof Faction ? $faction->getName() : ""
         ]));*/
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET factionRole = ? WHERE uuid = ?");
-        $stmt->bind_param("is", $role, $uuid);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET factionRole = :role WHERE uuid = :uuid");
+        $stmt->bindParam(":role", $role);
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -1057,10 +1098,11 @@ class HCFPlayer extends Player {
     public function setInvincible(?int $time): void {
         $this->invincibilityTime = $time ?? 3600;
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET invincibilityTime = ? WHERE uuid = ?");
-        $stmt->bind_param("is", $this->invincibilityTime, $uuid);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET invincibilityTime = :invincibilityTime WHERE uuid = :uuid");
+        $stmt->bindParam(":invincibilityTime", $this->invincibilityTime);
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -1103,10 +1145,11 @@ class HCFPlayer extends Player {
     public function addLives(int $lives): void {
         $this->lives += $lives;
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET lives = ? WHERE uuid = ?");
-        $stmt->bind_param("is", $this->lives, $uuid);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET lives = :lives WHERE uuid = :uuid");
+        $stmt->bindParam(":lives", $this->lives);
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     public function removeLife(): void {
@@ -1114,10 +1157,11 @@ class HCFPlayer extends Player {
             --$this->lives;
         }
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET lives = ? WHERE uuid = ?");
-        $stmt->bind_param("is", $this->lives, $uuid);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET lives = :lives WHERE uuid = :uuid");
+        $stmt->bindParam(":lives", $this->lives);
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -1138,10 +1182,11 @@ class HCFPlayer extends Player {
     public function addKills(int $amount = 1): void {
         $this->kills += $amount;
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET kills = ? WHERE uuid = ?");
-        $stmt->bind_param("is", $this->kills, $uuid);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET kills = :kills WHERE uuid = :uuid");
+        $stmt->bindParam(":kills", $this->kills);
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
     /**
      * @return int
@@ -1171,10 +1216,16 @@ class HCFPlayer extends Player {
         $y = $this->getFloorY();
         $z = $this->getFloorZ();
         $level = $this->getLevel()->getName();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("INSERT INTO wayPoints(uuid, username, name, x, y, z, level) VALUES(?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssiiis", $uuid, $username, $name, $x, $y, $z, $level);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("INSERT INTO wayPoints(uuid, username, name, x, y, z, level) VALUES(:uuid, :username, :name, :x, :y, :z, :level)");
+        $stmt->bindParam(":uuid", $uuid);
+        $stmt->bindParam(":username", $username);
+        $stmt->bindParam(":name", $name);
+        $stmt->bindParam(":x", $x);
+        $stmt->bindParam(":y", $y);
+        $stmt->bindParam(":z", $z);
+        $stmt->bindParam(":level", $level);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -1183,10 +1234,11 @@ class HCFPlayer extends Player {
     public function removeWayPoint(string $name): void {
         unset($this->wayPoints[$name]);
         $uuid = $this->getRawUniqueId();
-        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("DELETE FROM wayPoints WHERE uuid = ? AND name = ?");
-        $stmt->bind_param("ss", $uuid, $name);
+        $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("DELETE FROM wayPoints WHERE uuid = :uuid AND name = :name");
+        $stmt->bindParam(":uuid",$uuid);
+        $stmt->bindParam(":name",$name);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**

@@ -9,6 +9,7 @@ use hcf\translation\Translation;
 use hcf\translation\TranslationException;
 use libs\form\MenuForm;
 use libs\form\MenuOption;
+use PDO;
 use pocketmine\inventory\ArmorInventory;
 use pocketmine\item\Item;
 use pocketmine\Player;
@@ -51,28 +52,30 @@ class KitListForm extends MenuForm {
             return;
         }
         $kit = $player->getCore()->getKitManager()->getKitByName($name);
-        $stmt = $player->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT $lowercaseName FROM kitCooldowns WHERE uuid = ?");
-        $stmt->bind_param("s", $uuid);
+        $stmt = $player->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT $lowercaseName FROM kitCooldowns WHERE uuid = :uuid");
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
-        $stmt->bind_result($cooldown);
-        $stmt->fetch();
-        $stmt->close();
-        $cooldown = $kit->getCooldown() - ($time - $cooldown);
-        if($cooldown > 0) {
-            $days = floor($cooldown / 86400);
-            $hours = $hours = floor(($cooldown / 3600) % 24);
-            $minutes = floor(($cooldown / 60) % 60);
-            $seconds = $time % 60;
-            $time = "$days days, $hours hours, $minutes minutes, $seconds seconds";
-            $player->sendMessage(Translation::getMessage("kitCooldown", [
-                "time" => TextFormat::RED . $time
-            ]));
-            return;
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+            $cooldown = $row['cooldown'];
+            $cooldown = $kit->getCooldown() - ($time - $cooldown);
+            if($cooldown > 0) {
+                $days = floor($cooldown / 86400);
+                $hours = $hours = floor(($cooldown / 3600) % 24);
+                $minutes = floor(($cooldown / 60) % 60);
+                $seconds = $time % 60;
+                $time = "$days days, $hours hours, $minutes minutes, $seconds seconds";
+                $player->sendMessage(Translation::getMessage("kitCooldown", [
+                    "time" => TextFormat::RED . $time
+                ]));
+                return;
+            }
         }
+        $stmt->closeCursor();
+        
         $player->sendTitle(TextFormat::GREEN . TextFormat::BOLD . "Equipped", TextFormat::GRAY . $name . " Kit");
         foreach($kit->getItems() as $index => $item) {
             $id = $item->getId();
-            if($id === Item::CHAIN_HELMET or $id === Item::GOLD_HELMET or $id === Item::IRON_HELMET or $id === Item::DIAMOND_HELMET or $id === Item::LEATHER_CAP) {
+            if($id === Item::CHAIN_HELMET || $id === Item::GOLD_HELMET || $id === Item::IRON_HELMET || $id === Item::DIAMOND_HELMET || $id === Item::LEATHER_CAP) {
                 if($player->getArmorInventory()->isSlotEmpty(ArmorInventory::SLOT_HEAD) === false) {
                     $player->getLevel()->dropItem($player, $item);
                     continue;
@@ -80,7 +83,7 @@ class KitListForm extends MenuForm {
                 $player->getArmorInventory()->setHelmet($item);
                 continue;
             }
-            if($id === Item::CHAIN_CHESTPLATE or $id === Item::GOLD_CHESTPLATE or $id === Item::IRON_CHESTPLATE or $id === Item::DIAMOND_CHESTPLATE or $id === Item::LEATHER_CHESTPLATE) {
+            if($id === Item::CHAIN_CHESTPLATE || $id === Item::GOLD_CHESTPLATE || $id === Item::IRON_CHESTPLATE || $id === Item::DIAMOND_CHESTPLATE || $id === Item::LEATHER_CHESTPLATE) {
                 if($player->getArmorInventory()->isSlotEmpty(ArmorInventory::SLOT_CHEST) === false) {
                     $player->getLevel()->dropItem($player, $item);
                     continue;
@@ -88,7 +91,7 @@ class KitListForm extends MenuForm {
                 $player->getArmorInventory()->setChestplate($item);
                 continue;
             }
-            if($id === Item::CHAIN_LEGGINGS or $id === Item::GOLD_LEGGINGS or $id === Item::IRON_LEGGINGS or $id === Item::DIAMOND_LEGGINGS or $id === Item::LEATHER_LEGGINGS) {
+            if($id === Item::CHAIN_LEGGINGS || $id === Item::GOLD_LEGGINGS || $id === Item::IRON_LEGGINGS || $id === Item::DIAMOND_LEGGINGS || $id === Item::LEATHER_LEGGINGS) {
                 if($player->getArmorInventory()->isSlotEmpty(ArmorInventory::SLOT_LEGS) === false) {
                     $player->getLevel()->dropItem($player, $item);
                     continue;
@@ -96,7 +99,7 @@ class KitListForm extends MenuForm {
                 $player->getArmorInventory()->setLeggings($item);
                 continue;
             }
-            if($id === Item::CHAIN_BOOTS or $id === Item::GOLD_BOOTS or $id === Item::IRON_BOOTS or $id === Item::DIAMOND_BOOTS or $id === Item::LEATHER_BOOTS) {
+            if($id === Item::CHAIN_BOOTS || $id === Item::GOLD_BOOTS || $id === Item::IRON_BOOTS || $id === Item::DIAMOND_BOOTS || $id === Item::LEATHER_BOOTS) {
                 if($player->getArmorInventory()->isSlotEmpty(ArmorInventory::SLOT_FEET) === false) {
                     $player->getLevel()->dropItem($player, $item);
                     continue;
@@ -110,10 +113,11 @@ class KitListForm extends MenuForm {
             }
             $player->getLevel()->dropItem($player, $item);
         }
-        $stmt = $player->getCore()->getMySQLProvider()->getDatabase()->prepare("UPDATE kitCooldowns SET $lowercaseName = ? WHERE uuid = ?");
-        $stmt->bind_param("is", $time, $uuid);
+        $stmt = $player->getCore()->getMySQLProvider()->getDatabase()->prepare("UPDATE kitCooldowns SET $lowercaseName = :time WHERE uuid = :uuid");
+        $stmt->bindParam(":time",$time);
+        $stmt->bindParam(":uuid",$uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
         HCF::getInstance()->getScheduler()->scheduleDelayedTask(new SetClassTask($player), 1);
     }
 }

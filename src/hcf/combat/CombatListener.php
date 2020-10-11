@@ -72,7 +72,8 @@ class CombatListener implements Listener
         if (!$player instanceof HCFPlayer) {
             return;
         }
-        if ($player->getGroup()->getIdentifier() >= Group::TRAINEE && $player->getGroup()->getIdentifier() <= Group::OWNER) {
+        $groupIdentifier = $player->getGroup()->getIdentifier();
+        if ($groupIdentifier >= Group::TRAINEE && $groupIdentifier <= Group::OWNER) {
             return;
         }
         if (strpos($event->getMessage(), "/") !== 0) {
@@ -96,19 +97,17 @@ class CombatListener implements Listener
         $item = $event->getItem();
         if ($item->getId() === Item::ENCHANTED_GOLDEN_APPLE) {
             if (isset($this->godAppleCooldowns[$player->getRawUniqueId()])) {
-                if ((time() - $this->godAppleCooldowns[$player->getRawUniqueId()]) < 10800) {
-                    if (!$event->isCancelled()) {
-                        $time = 10800 - (time() - $this->godAppleCooldowns[$player->getRawUniqueId()]);
-                        $hours = floor($time / 3600);
-                        $minutes = floor(($time / 60) % 60);
-                        $seconds = $time % 60;
-                        $time = "$hours hours, $minutes minutes, $seconds seconds";
-                        $player->sendPopup(Translation::getMessage("godAppleCooldown", [
-                            "time" => $time
-                        ]));
-                        $event->setCancelled();
-                        return;
-                    }
+                if (!$event->isCancelled() && ((time() - $this->godAppleCooldowns[$player->getRawUniqueId()]) < 10800)) {
+                    $time = 10800 - (time() - $this->godAppleCooldowns[$player->getRawUniqueId()]);
+                    $hours = floor($time / 3600);
+                    $minutes = floor(($time / 60) % 60);
+                    $seconds = $time % 60;
+                    $time = "$hours hours, $minutes minutes, $seconds seconds";
+                    $player->sendPopup(Translation::getMessage("godAppleCooldown", [
+                        "time" => $time
+                    ]));
+                    $event->setCancelled();
+                    return;
                 }
                 $this->godAppleCooldowns[$player->getRawUniqueId()] = time();
                 return;
@@ -118,15 +117,13 @@ class CombatListener implements Listener
         }
         if ($item->getId() === Item::GOLDEN_APPLE) {
             if (isset($this->goldenAppleCooldown[$player->getRawUniqueId()])) {
-                if ((time() - $this->goldenAppleCooldown[$player->getRawUniqueId()]) < 10) {
-                    if (!$event->isCancelled()) {
-                        $time = 10 - (time() - $this->goldenAppleCooldown[$player->getRawUniqueId()]);
-                        $player->sendPopup(Translation::getMessage("actionCooldown", [
-                            "amount" => TextFormat::RED . $time
-                        ]));
-                        $event->setCancelled();
-                        return;
-                    }
+                if (!$event->isCancelled() && ((time() - $this->goldenAppleCooldown[$player->getRawUniqueId()]) < 10)) {
+                    $time = 10 - (time() - $this->goldenAppleCooldown[$player->getRawUniqueId()]);
+                    $player->sendPopup(Translation::getMessage("actionCooldown", [
+                        "amount" => TextFormat::RED . $time
+                    ]));
+                    $event->setCancelled();
+                    return;
                 }
                 $this->goldenAppleCooldown[$player->getRawUniqueId()] = time();
                 return;
@@ -139,6 +136,7 @@ class CombatListener implements Listener
     /**
      * @priority NORMAL
      * @param PlayerRespawnEvent $event
+     * @noinspection NullPointerExceptionInspection
      */
     public function onPlayerRespawn(PlayerRespawnEvent $event): void
     {
@@ -215,10 +213,11 @@ class CombatListener implements Listener
             if ($player->getLives() <= 0) {
                 $time = time();
                 $uuid = $player->getRawUniqueId();
-                $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET deathBanTime = ? WHERE uuid = ?");
-                $stmt->bind_param("is", $time, $uuid);
+                $stmt = $this->core->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET deathBanTime = :time WHERE uuid = :uuid");
+                $stmt->bindParam(":time", $time);
+                $stmt->bindParam(":uuid", $uuid);
                 $stmt->execute();
-                $stmt->close();
+                $stmt->closeCursor();
                 HCF::getInstance()->getScheduler()->scheduleDelayedTask(new class($player) extends Task {
 
                     /** @var HCFPlayer */
@@ -367,19 +366,17 @@ class CombatListener implements Listener
             return;
         }
         if ($tag instanceof CompoundTag) {
-            if ($item->getId() === Item::IRON_AXE && $damager->getLevel()->getFolderName() === "wild") {
-                if ($item->getNamedTag()->hasTag("SpecialFeature")){
-                    if ($damager->hasLumberAxeCooldown){
-                        return;
-                    }
-                    $count = $tag->getInt(LumberAxe::HIT_COUNT);
-                    ++$count;
-                    $tag->setInt(LumberAxe::HIT_COUNT, $count);
-                    if ($count >= 3) {
-                        $victim->getArmorInventory()->setHelmet(Item::get(Item::AIR));
-                        $tag->setInt(LumberAxe::HIT_COUNT, 0);
-                        HCF::getInstance()->getScheduler()->scheduleRepeatingTask(new SpecialItemCooldown($damager, "LumberAxe"), 20);
-                    }
+            if ($item->getId() === Item::IRON_AXE && $damager->getLevel()->getFolderName() === "wild" && $item->getNamedTag()->hasTag("SpecialFeature")) {
+                if ($damager->hasLumberAxeCooldown){
+                    return;
+                }
+                $count = $tag->getInt(LumberAxe::HIT_COUNT);
+                ++$count;
+                $tag->setInt(LumberAxe::HIT_COUNT, $count);
+                if ($count >= 3) {
+                    $victim->getArmorInventory()->setHelmet(Item::get(Item::AIR));
+                    $tag->setInt(LumberAxe::HIT_COUNT, 0);
+                    HCF::getInstance()->getScheduler()->scheduleRepeatingTask(new SpecialItemCooldown($damager, "LumberAxe"), 20);
                 }
             }
             if ($item->getId() === Item::BONE && $damager->getLevel()->getFolderName() === "wild") {

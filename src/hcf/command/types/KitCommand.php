@@ -8,6 +8,7 @@ use hcf\kit\task\SetClassTask;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
 use muqsit\invmenu\InvMenu;
+use PDO;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\inventory\ArmorInventory;
@@ -114,27 +115,28 @@ class KitCommand extends Command
             return;
         }
         $kit = $player->getCore()->getKitManager()->getKitByName($selectedKit);
-        $stmt = $player->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT $lowercaseName FROM kitCooldowns WHERE uuid = ?");
+        $stmt = $player->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT $lowercaseName FROM kitCooldowns WHERE uuid = :uuid");
         if (!$stmt) {
             return;
         }
-        $stmt->bind_param("s", $uuid);
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
-        $stmt->bind_result($cooldown);
-        $stmt->fetch();
-        $stmt->close();
-        $cooldown = $kit->getCooldown() - ($time - $cooldown);
-        if ($cooldown > 0) {
-            $days = floor($cooldown / 86400);
-            $hours = $hours = floor(($cooldown / 3600) % 24);
-            $minutes = floor(($cooldown / 60) % 60);
-            $seconds = $time % 60;
-            $time = "$days days, $hours hours, $minutes minutes, $seconds seconds";
-            $player->sendMessage(Translation::getMessage("kitCooldown", [
-                "time" => TextFormat::RED . $time
-            ]));
-            return;
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+            $cooldown = $row['cooldown'];
+            $cooldown = $kit->getCooldown() - ($time - $cooldown);
+            if ($cooldown > 0) {
+                $days = floor($cooldown / 86400);
+                $hours = $hours = floor(($cooldown / 3600) % 24);
+                $minutes = floor(($cooldown / 60) % 60);
+                $seconds = $time % 60;
+                $time = "$days days, $hours hours, $minutes minutes, $seconds seconds";
+                $player->sendMessage(Translation::getMessage("kitCooldown", [
+                    "time" => TextFormat::RED . $time
+                ]));
+                return;
+            }
         }
+        $stmt->closeCursor();
         $player->sendTitle(TextFormat::GREEN . TextFormat::BOLD . "Equipped", TextFormat::GRAY . $selectedKit . " Kit");
         foreach ($kit->getItems() as $index => $item) {
             $id = $item->getId();
@@ -176,10 +178,11 @@ class KitCommand extends Command
             }
             $player->getLevel()->dropItem($player, $item);
         }
-        $stmt = $player->getCore()->getMySQLProvider()->getDatabase()->prepare("UPDATE kitCooldowns SET $lowercaseName = ? WHERE uuid = ?");
-        $stmt->bind_param("is", $time, $uuid);
+        $stmt = $player->getCore()->getMySQLProvider()->getDatabase()->prepare("UPDATE kitCooldowns SET $lowercaseName = :time WHERE uuid = :uuid");
+        $stmt->bindParam(":time", $time);
+        $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
         HCF::getInstance()->getScheduler()->scheduleDelayedTask(new SetClassTask($player), 1);
     }
 }

@@ -9,58 +9,51 @@ use pocketmine\utils\TextFormat;
 
 class Faction {
 
-    const RECRUIT = 0;
+    public const RECRUIT = 0;
+    public const MEMBER = 1;
+    public const OFFICER = 2;
+    public const LEADER = 3;
 
-    const MEMBER = 1;
+    public const MAX_MEMBERS = 4;
+    public const MAX_ALLIES = 0;
+    public const MAX_DTR = 4.1;
 
-    const OFFICER = 2;
-
-    const LEADER = 3;
-
-    const MAX_MEMBERS = 4;
-
-    const MAX_ALLIES = 0;
-
-    const MAX_DTR = 4.1;
-
-    const DTR_GENERATE_TIME = 900;
-
-    const DTR_GENERATE_AMOUNT = 4.1;
-
-    const DTR_FREEZE_TIME = 600;
+    public const DTR_GENERATE_TIME = 900;
+    public const DTR_GENERATE_AMOUNT = 4.1;
+    public const DTR_FREEZE_TIME = 600;
 
     /** @var string */
     private $name;
 
     /** @var string[] */
-    private $members = [];
+    private $members;
 
     /** @var string[] */
     private $invites = [];
 
     /** @var string[] */
-    private $allies = [];
+    private $allies;
 
     /** @var string[] */
     private $allyRequests = [];
 
     /** @var float */
-    private $dtr = self::MAX_DTR;
+    private $dtr;
 
     /** @var int */
     private $dtrFreezeTime = 0;
 
     /** @var null|int */
-    private $dtrRegenerateTime = null;
+    private $dtrRegenerateTime;
 
     /** @var int */
-    private $balance = 0;
+    private $balance;
 
     /** @var null|Position */
-    private $home = null;
+    private $home;
 
     /** @var null|Claim */
-    private $claim = null;
+    private $claim;
 
     /**
      * Faction constructor.
@@ -143,7 +136,7 @@ class Faction {
      */
     public function isInFaction($player): bool {
         $player = $player instanceof HCFPlayer ? $player->getName() : $player;
-        return in_array($player, $this->members);
+        return in_array($player, $this->members, true);
     }
 
     /**
@@ -169,10 +162,11 @@ class Faction {
         $player->setFactionRole(self::RECRUIT);
         $player->setFaction($this);
         $members = implode(",", $this->members);
-        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET members = ? WHERE name = ?");
-        $stmt->bind_param("ss", $members, $this->name);
+        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET members = :members WHERE name = :name");
+        $stmt->bindParam(":members", $members);
+        $stmt->bindParam(":name", $this->name);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -180,16 +174,17 @@ class Faction {
      */
     public function removeMember($player): void {
         $name = $player instanceof HCFPlayer ? $player->getName() : $player;
-        unset($this->members[array_search($name, $this->members)]);
+        unset($this->members[array_search($name, $this->members, true)]);
         if($player instanceof HCFPlayer) {
             $player->setFaction(null);
             $player->setFactionRole(null);
         }
         $members = implode(",", $this->members);
-        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET members = ? WHERE name = ?");
-        $stmt->bind_param("ss", $members, $this->name);
+        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET members = :members WHERE name = :name");
+        $stmt->bindParam(":members", $members);
+        $stmt->bindParam(":name",$this->name);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -237,22 +232,24 @@ class Faction {
     public function addAlly(Faction $faction): void {
         $this->allies[] = $faction->getName();
         $allies = implode(",", $this->allies);
-        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET allies = ? WHERE name = ?");
-        $stmt->bind_param("ss", $allies, $this->name);
+        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET allies = :allies WHERE name = :name");
+        $stmt->bindParam(":allies", $allies);
+        $stmt->bindParam(":name",$this->name);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
      * @param Faction $faction
      */
     public function removeAlly(Faction $faction): void {
-        unset($this->allies[array_search($faction->getName(), $this->allies)]);
+        unset($this->allies[array_search($faction->getName(), $this->allies, true)]);
         $allies = implode(",", $this->allies);
-        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET allies = ? WHERE name = ?");
-        $stmt->bind_param("ss", $allies, $this->name);
+        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET allies = :allies WHERE name = :name");
+        $stmt->bindParam(":allies", $allies);
+        $stmt->bindParam(":name",$this->name);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -268,7 +265,7 @@ class Faction {
      * @return bool
      */
     public function isAlly(Faction $faction): bool {
-        return in_array($faction->getName(), $this->allies);
+        return in_array($faction->getName(), $this->allies, true);
     }
 
     public function subtractDTR(): void {
@@ -279,18 +276,20 @@ class Faction {
             }
         }
         $this->dtrFreezeTime = time();
-        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET dtr = ? WHERE name = ?");
-        $stmt->bind_param("ds", $this->dtr, $this->name);
+        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET dtr = :dtr WHERE name = :name");
+        $stmt->bindParam(":dtr", $this->dtr);
+        $stmt->bindParam(":name",$this->name);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     public function regenerateDTR(): void {
         $this->dtr += self::DTR_GENERATE_AMOUNT;
-        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET dtr = ? WHERE name = ?");
-        $stmt->bind_param("ds", $this->dtr, $this->name);
+        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET dtr = :dtr WHERE name = :name");
+        $stmt->bindParam(":dtr", $this->dtr);
+        $stmt->bindParam(":name",$this->name);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -319,10 +318,11 @@ class Faction {
      */
     public function addMoney(int $amount): void {
         $this->balance += $amount;
-        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET balance = balance + ? WHERE name = ?");
-        $stmt->bind_param("is", $amount, $this->name);
+        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET balance = balance + :amount WHERE name = :name");
+        $stmt->bindParam(":amount", $amount);
+        $stmt->bindParam(":name",$this->name);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -330,10 +330,11 @@ class Faction {
      */
     public function subtractMoney(int $amount): void {
         $this->balance -= $amount;
-        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET balance = balance - ? WHERE name = ?");
-        $stmt->bind_param("is", $amount, $this->name);
+        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET balance = balance - :amount WHERE name = :name");
+        $stmt->bindParam(":amount", $amount);
+        $stmt->bindParam(":name",$this->name);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -358,10 +359,14 @@ class Faction {
             $z = $position->getZ();
             $level = $position->getLevel()->getName();
         }
-        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET x = ?, y = ?, z = ?, level = ? WHERE name = ?");
-        $stmt->bind_param("iiiss", $x, $y, $z, $level, $this->name);
+        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET x = :x, y = :y, z = :z, level = :level WHERE name = :name");
+        $stmt->bindParam(":x", $x);
+        $stmt->bindParam(":y", $y);
+        $stmt->bindParam(":z", $z);
+        $stmt->bindParam(":level",$level);
+        $stmt->bindParam(":name", $this->name);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**
@@ -390,20 +395,25 @@ class Faction {
         $maxX = max($firstPosition->getX(), $secondPosition->getX());
         $minZ = min($firstPosition->getZ(), $secondPosition->getZ());
         $maxZ = max($firstPosition->getZ(), $secondPosition->getZ());
-        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET minX = ?, minZ = ?, maxX = ?, maxZ = ? WHERE name = ?");
-        $stmt->bind_param("iiiis", $minX, $minZ, $maxX, $maxZ, $this->name);
+        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET minX = :minX, minZ = :minZ, maxX = :maxX, maxZ = :maxZ WHERE name = :name");
+        $stmt->bindParam(":minX", $minX);
+        $stmt->bindParam(":minZ", $minZ);
+        $stmt->bindParam(":maxX", $maxX);
+        $stmt->bindParam(":maxZ", $maxZ);
+        $stmt->bindParam(":name", $this->name);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     public function removeClaim(): void {
         HCF::getInstance()->getFactionManager()->removeClaim($this->claim);
         $this->claim = null;
         $value = null;
-        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET minX = ?, minZ = ?, maxX = ?, maxZ = ? WHERE name = ?");
-        $stmt->bind_param("iiiis", $value, $value, $value, $value, $this->name);
+        $stmt = HCF::getInstance()->getMySQLProvider()->getDatabase()->prepare("UPDATE factions SET minX = :value, minZ = :value, maxX = :value, maxZ = :value WHERE name = :name");
+        $stmt->bindParam(":value", $value);
+        $stmt->bindParam(":name", $this->name);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
 
     /**

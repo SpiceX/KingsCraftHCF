@@ -5,6 +5,7 @@ namespace hcf\command\types;
 use hcf\command\utils\Command;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
+use PDO;
 use pocketmine\command\CommandSender;
 use pocketmine\utils\TextFormat;
 
@@ -26,35 +27,31 @@ class AliasCommand extends Command {
      */
     public function execute(CommandSender $sender, string $commandLabel, array $args): void {
         if(isset($args[0])) {
-            if(!$sender->isOp()) {
-                if(!$sender->hasPermission("permission.staff")) {
-                    $sender->sendMessage(Translation::getMessage("noPermission"));
-                    return;
-                }
+            if(!$sender->isOp() && !$sender->hasPermission("permission.staff")) {
+                $sender->sendMessage(Translation::getMessage("noPermission"));
+                return;
             }
             $name = $args[0];
-            $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT ipAddress FROM ipAddress WHERE username = ?");
-            $stmt->bind_param("s", $name);
+            $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT ipAddress FROM ipAddress WHERE username = :name");
+            $stmt->bindParam(":name", $name);
             $stmt->execute();
-            $stmt->bind_result($result);
             $addresses = [];
-            while($stmt->fetch()) {
-                if($result === null) {
+            while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                if($row === false) {
                     $sender->sendMessage(Translation::getMessage("invalidPlayer"));
                 }
-                $addresses[] = $result;
+                $addresses[] = $row['ipAddress'];
             }
-            $stmt->close();
+            $stmt->closeCursor();
             $players = [];
             foreach($addresses as $address) {
-                $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT username FROM ipAddress WHERE ipAddress = ?");
-                $stmt->bind_param("s", $address);
+                $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT username FROM ipAddress WHERE ipAddress = :address");
+                $stmt->bindParam(":address", $address);
                 $stmt->execute();
-                $stmt->bind_result($result);
-                while($stmt->fetch()) {
-                    $players[] = $result;
+                while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $players[] = $row['ipAddress'];
                 }
-                $stmt->close();
+                $stmt->closeCursor();
             }
             $sender->sendMessage(TextFormat::DARK_RED . TextFormat::BOLD . strtoupper($name) . " IS ALSO KNOWN AS:");
             $sender->sendMessage(TextFormat::WHITE . implode(", ", $players));
@@ -63,6 +60,5 @@ class AliasCommand extends Command {
         $sender->sendMessage(Translation::getMessage("usageMessage", [
             "usage" => $this->getUsage()
         ]));
-        return;
     }
 }

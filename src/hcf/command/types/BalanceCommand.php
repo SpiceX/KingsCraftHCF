@@ -6,6 +6,7 @@ use hcf\command\utils\Command;
 use hcf\HCFPlayer;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
+use PDO;
 use pocketmine\command\CommandSender;
 use pocketmine\utils\TextFormat;
 
@@ -35,16 +36,17 @@ class BalanceCommand extends Command {
         if(isset($args[0])) {
             $player = $this->getCore()->getServer()->getPlayer($args[0]);
             if(!$player instanceof HCFPlayer) {
-                $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT balance FROM players WHERE username = ?");
-                $stmt->bind_param("s", $args[0]);
+                $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT balance FROM players WHERE username = :name");
+                $stmt->bindParam(":name", $args[0]);
                 $stmt->execute();
-                $stmt->bind_result($balance);
-                $stmt->fetch();
-                $stmt->close();
-                if($balance === null) {
-                    $sender->sendMessage(Translation::getMessage("invalidPlayer"));
-                    return;
+                while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+                    $balance = $row['balance'];
+                    if($balance === false) {
+                        $sender->sendMessage(Translation::getMessage("invalidPlayer"));
+                        return;
+                    }
                 }
+                $stmt->closeCursor();
                 $name = "$args[0]'s";
             }
         }
