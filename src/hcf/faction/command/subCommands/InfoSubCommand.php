@@ -7,6 +7,7 @@ use hcf\faction\Faction;
 use hcf\HCFPlayer;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
+use PDO;
 use pocketmine\command\CommandSender;
 use pocketmine\utils\TextFormat;
 
@@ -53,14 +54,15 @@ class InfoSubCommand extends SubCommand {
         $members = [];
         $memberKills = [];
         $name = $faction->getName();
-        $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT kills, username FROM players WHERE faction = ?");
-        $stmt->bind_param("s", $name);
+        $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT kills, username FROM players WHERE faction = :name");
+        $stmt->bindParam(":name", $name);
         $stmt->execute();
-        $stmt->bind_result($kills, $username);
-        while($stmt->fetch()) {
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+            $username = $row['username'];
+            $kills = $row['kills'];
             $memberKills[$username] = $kills;
         }
-        $stmt->close();
+        $stmt->closeCursor();
         foreach($faction->getMembers() as $member) {
             if(($player = $this->getCore()->getServer()->getPlayer($member)) !== null) {
                 $members[] = TextFormat::GREEN . $player->getName() . TextFormat::DARK_GRAY . "[" . TextFormat::DARK_RED . TextFormat::BOLD . $memberKills[$member] . TextFormat::RESET . TextFormat::DARK_GRAY . "]";

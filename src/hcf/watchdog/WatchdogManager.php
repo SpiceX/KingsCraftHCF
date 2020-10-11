@@ -18,4 +18,12 @@ class WatchdogManager {
         $this->core = $core;
         $core->getServer()->getPluginManager()->registerEvents(new WatchdogListener($core), $core);
     }
+
+    /**
+     * @return HCF
+     */
+    public function getCore(): HCF
+    {
+        return $this->core;
+    }
 }

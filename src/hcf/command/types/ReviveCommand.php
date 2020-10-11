@@ -6,6 +6,7 @@ use hcf\command\utils\Command;
 use hcf\HCFPlayer;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
+use PDO;
 use pocketmine\command\CommandSender;
 use pocketmine\utils\TextFormat;
 
@@ -49,22 +50,24 @@ class ReviveCommand extends Command {
             $sender->sendMessage(Translation::getMessage("invalidPlayer"));
             return;
         }
-        $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT deathBanTime FROM players WHERE username = ?");
-        $stmt->bind_param("s", $player);
+        $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT deathBanTime FROM players WHERE username = :username");
+        $stmt->bindParam(":username", $player);
         $stmt->execute();
-        $stmt->bind_result($deathBanTime);
-        $stmt->fetch();
-        $stmt->close();
-        if($deathBanTime === null) {
-            $sender->sendMessage(Translation::getMessage("invalidPlayer"));
-            return;
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+            $deathBanTime = $row['deathBanTime'];
+            if($deathBanTime === null) {
+                $sender->sendMessage(Translation::getMessage("invalidPlayer"));
+                return;
+            }
         }
+        $stmt->closeCursor();
         $sender->removeLife();
         $time = 0;
-        $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET deathBanTime = ? WHERE username = ?");
-        $stmt->bind_param("is", $time, $player);
+        $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET deathBanTime = :time WHERE username = :username");
+        $stmt->bindParam(":time",$time);
+        $stmt->bindParam(":username",$player);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
         $sender->sendMessage(Translation::getMessage("reviveSuccess", [
             "name" => TextFormat::GOLD . $player
         ]));

@@ -6,6 +6,7 @@ use hcf\command\utils\Command;
 use hcf\HCFPlayer;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
+use PDO;
 use pocketmine\command\CommandSender;
 use pocketmine\command\ConsoleCommandSender;
 
@@ -37,20 +38,25 @@ class UnmuteCommand extends Command
                 ]));
                 return;
             }
-            $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT effector, reason, expiration FROM mutes WHERE username = ?;");
-            $stmt->bind_param("s", $args[0]);
+            $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT effector, reason, expiration FROM mutes WHERE username = :username;");
+            $stmt->bindParam(":username", $args[0]);
             $stmt->execute();
-            $stmt->bind_result($effector, $reason, $expiration);
-            $stmt->fetch();
-            $stmt->close();
-            if ($effector === null && $reason === null && $expiration === null) {
-                $sender->sendMessage(Translation::getMessage("invalidPlayer"));
-                return;
+
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $effector = $row['effector'];
+                $reason = $row['reason'];
+                $expiration = $row['expiration'];
+                if ($effector === null && $reason === null && $expiration === null) {
+                    $sender->sendMessage(Translation::getMessage("invalidPlayer"));
+                    return;
+                }
             }
-            $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("DELETE FROM mutes WHERE username = ?;");
-            $stmt->bind_param("s", $args[0]);
+            $stmt->closeCursor();
+
+            $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("DELETE FROM mutes WHERE username = :username;");
+            $stmt->bindParam(":username", $args[0]);
             $stmt->execute();
-            $stmt->close();
+            $stmt->closeCursor();
             $this->getCore()->getServer()->broadcastMessage(Translation::getMessage("punishmentRelivedBroadcast", [
                 "name" => $args[0],
                 "effector" => $sender->getName()

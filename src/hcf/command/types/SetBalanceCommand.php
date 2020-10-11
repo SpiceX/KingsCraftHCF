@@ -6,6 +6,7 @@ use hcf\command\utils\Command;
 use hcf\HCFPlayer;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
+use PDO;
 use pocketmine\command\CommandSender;
 use pocketmine\utils\TextFormat;
 
@@ -38,25 +39,25 @@ class SetBalanceCommand extends Command {
         }
         $player = $this->getCore()->getServer()->getPlayer($args[0]);
         if(!$player instanceof HCFPlayer) {
-            $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT balance FROM players WHERE username = ?");
-            $stmt->bind_param("s", $args[0]);
-            $result = $stmt->get_result();
-            $row = $result->fetch_assoc();
-            $result->free();
-            $stmt->close();
-            $balance = $row["balance"];
-            if($balance === null) {
-                $sender->sendMessage(Translation::getMessage("invalidPlayer"));
-                return;
+            $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT balance FROM players WHERE username = :username");
+            $stmt->bindParam(":username", $args[0]);
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+                $balance = $row["balance"];
+                if($balance === null) {
+                    $sender->sendMessage(Translation::getMessage("invalidPlayer"));
+                    return;
+                }
             }
+            $stmt->closeCursor();
         }
         if(!is_numeric($args[1])) {
             $sender->sendMessage(Translation::getMessage("notNumeric"));
             return;
         }
         if(isset($balance)) {
-            $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET balance = ? WHERE username = ?");
-            $stmt->bind_param("is", $args[1], $args[0]);
+            $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("UPDATE players SET balance = :balance WHERE username = :username");
+            $stmt->bindParam(":balance", $args[1]);
+            $stmt->bindParam(":username", $args[0]);
             $stmt->execute();
         }
         else {

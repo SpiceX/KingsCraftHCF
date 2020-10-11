@@ -74,7 +74,7 @@ class KitCommand extends Command
                     }
                     HCF::getInstance()->getKitManager()->createFromInventory($args[1], $sender);
                     $lowercaseName = strtolower($args[1]);
-                    HCF::getInstance()->getMySQLProvider()->getDatabase()->query("ALTER TABLE kitCooldowns ADD COLUMN $lowercaseName INT DEFAULT 0;");
+                    HCF::getInstance()->getMySQLProvider()->getDatabase()->exec("ALTER TABLE kitCooldowns ADD COLUMN $lowercaseName INT DEFAULT 0;");
                     $sender->sendMessage("§2[§aKitManager§2] §aYou have created {$args[1]} kit.");
                     break;
                 case 'delete':
@@ -88,7 +88,7 @@ class KitCommand extends Command
                     }
                     $lowercaseName = strtolower($args[1]);
                     HCF::getInstance()->getKitManager()->removeKitByName($args[1]);
-                    HCF::getInstance()->getMySQLProvider()->getDatabase()->query("ALTER TABLE kitCooldowns DROP COLUMN $lowercaseName;");
+                    HCF::getInstance()->getMySQLProvider()->getDatabase()->exec("ALTER TABLE kitCooldowns DROP COLUMN $lowercaseName;");
                     $sender->sendMessage("§2[§aKitManager§2] §aYou have deleted {$args[1]} kit.");
             }
         }
@@ -121,7 +121,7 @@ class KitCommand extends Command
         }
         $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $cooldown = $row['cooldown'];
             $cooldown = $kit->getCooldown() - ($time - $cooldown);
             if ($cooldown > 0) {

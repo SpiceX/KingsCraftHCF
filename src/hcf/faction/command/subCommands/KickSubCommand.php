@@ -6,6 +6,7 @@ use hcf\command\utils\SubCommand;
 use hcf\HCFPlayer;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
+use PDO;
 use pocketmine\command\CommandSender;
 use pocketmine\utils\TextFormat;
 
@@ -40,7 +41,7 @@ class KickSubCommand extends SubCommand {
             ]));
             return;
         }
-        $player = $this->getCore()->getServer()->getPlayer($args[1]) !== null ? $this->getCore()->getServer()->getPlayer($args[1]) : $args[1];
+        $player = $this->getCore()->getServer()->getPlayer($args[1]) ?? $args[1];
         if(!$sender->getFaction()->isInFaction($player)) {
             $sender->sendMessage(Translation::getMessage("invalidPlayer"));
             return;
@@ -50,12 +51,17 @@ class KickSubCommand extends SubCommand {
             $name = $player->getName();
         }
         else {
-            $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT factionRole FROM players WHERE username = ?");
-            $stmt->bind_param("s", $player);
+            $stmt = $this->getCore()->getMySQLProvider()->getDatabase()->prepare("SELECT factionRole FROM players WHERE username = :username");
+            $stmt->bindParam(":username", $player);
             $stmt->execute();
-            $stmt->bind_result($role);
-            $stmt->fetch();
-            $stmt->close();
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $role = $row['factionRole'];
+                if ($sender->getFactionRole() < $role) {
+                    $sender->sendMessage(Translation::getMessage("noPermission"));
+                    return;
+                }
+            }
+            $stmt->closeCursor();
             $name = $args[1];
         }
         if($sender->getFactionRole() < $role) {
