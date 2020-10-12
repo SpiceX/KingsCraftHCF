@@ -7,9 +7,8 @@ use pocketmine\level\Position;
 
 class ShopSign {
 
-    const BUY = 0;
-
-    const SELL = 1;
+    public const BUY = 0;
+    public const SELL = 1;
 
     /** @var Position */
     private $position;

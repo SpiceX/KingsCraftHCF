@@ -938,9 +938,7 @@ class HCFPlayer extends Player
     {
         $uuid = $this->getUniqueId()->toString();
         $result = $this->core->getMySQLProvider()->getDatabase()->query("SELECT username FROM players WHERE uuid = $uuid");
-        $uuid = $this->getUniqueId()->toString();
-        $result2 = $this->core->getMySQLProvider()->getDatabase()->query("SELECT username FROM kitCooldowns WHERE uuid = $uuid");
-        return $result !== false && $result2 !== false;
+        return $result !== false;
     }
 
     /**
