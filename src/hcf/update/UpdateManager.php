@@ -33,10 +33,10 @@ class UpdateManager
         if ($player->isClosed() || $player->getClass() === HCFPlayer::BARD) {
             return;
         }
-        if ($player->isOnline()){
+        if ($player->isOnline()) {
             $bossbar = $player->getBossBar();
             $bossbar->update(Padding::centerText(
-                $this->core->getConfig()->get('bossbar_title', "§l§b» §9Kings§fHCF §b«". "\n\n§r") .
+                $this->core->getConfig()->get('bossbar_title', "§l§b» §9Kings§fHCF §b«" . "\n\n§r") .
                 "§fName: §9" . $player->getName() . "  " .
                 "§fCPS: §9" . $this->core->getCpsCounter()->getCps($player) . "  " .
                 "§fPing: §9" . $player->getPing() . "  " .
@@ -147,6 +147,21 @@ class UpdateManager
                 $scoreboard->setScoreLine(9, TextFormat::DARK_RED . "- SOTW: " . TextFormat::RESET . TextFormat::WHITE . "$minutes:$seconds");
             }
             $scoreboard->setScoreLine(2, TextFormat::BLUE . "- Direction: " . TextFormat::RESET . TextFormat::WHITE . Utils::getCompassDirection($player->getYaw() - 90));
+            if ($this->core->getCombatManager()->getCombatListener()->hasGoldenAppleCooldown($player)) {
+                $scoreboard->setScoreLine(10, TextFormat::LIGHT_PURPLE . "- GoldenApple: " . TextFormat::RESET . TextFormat::WHITE . $this->core->getCombatManager()->getCombatListener()->getGoldenAppleCooldown($player) . "s");
+            } else {
+                if ($scoreboard->getLine(10) !== null) {
+                    $scoreboard->removeLine(10);
+                }
+            }
+            if ($this->core->getCombatManager()->getCombatListener()->hasGodAppleCooldown($player)) {
+                $scoreboard->setScoreLine(11, TextFormat::GOLD . "- GodApple: " . TextFormat::RESET . TextFormat::WHITE . $this->core->getCombatManager()->getCombatListener()->getGodAppleCooldown($player));
+            } else {
+                if ($scoreboard->getLine(11) !== null) {
+                    $scoreboard->removeLine(11);
+                }
+            }
+            $scoreboard->setScoreLine(12, "§7--------------------");
         }
     }
 }

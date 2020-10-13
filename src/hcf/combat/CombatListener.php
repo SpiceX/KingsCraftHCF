@@ -206,7 +206,7 @@ class CombatListener implements Listener
             }
         }
         $player->combatTag(false);
-        $player->setInvincible(200);
+        //$player->setInvincible(200);
         $event->setDeathMessage($message);
         $deathBanTime = $player->getGroup()->getDeathBanTime();
         if ($deathBanTime > 0) {
@@ -367,7 +367,7 @@ class CombatListener implements Listener
         }
         if ($tag instanceof CompoundTag) {
             if ($item->getId() === Item::IRON_AXE && $damager->getLevel()->getFolderName() === "wild" && $item->getNamedTag()->hasTag("SpecialFeature")) {
-                if ($damager->hasLumberAxeCooldown){
+                if ($damager->hasLumberAxeCooldown) {
                     return;
                 }
                 $count = $tag->getInt(LumberAxe::HIT_COUNT);
@@ -552,5 +552,56 @@ class CombatListener implements Listener
                 }, 5);
             }
         }
+    }
+
+    /**
+     * @param Player $player
+     * @return bool
+     */
+    public function hasGodAppleCooldown(Player $player): bool
+    {
+        if (!isset($this->godAppleCooldowns[$player->getRawUniqueId()])) {
+            return false;
+        }
+        $time = 10800 - (time() - $this->godAppleCooldowns[$player->getRawUniqueId()]);
+        $hours = floor($time / 3600);
+        $minutes = floor(($time / 60) % 60);
+        $seconds = $time % 60;
+        return $hours > 0 || $minutes > 0 || $seconds > 0;
+    }
+
+    /**
+     * @param Player $player
+     * @return bool
+     */
+    public function hasGoldenAppleCooldown(Player $player): bool
+    {
+        if (!isset($this->goldenAppleCooldown[$player->getRawUniqueId()])) {
+            return false;
+        }
+        $time = 10 - (time() - $this->goldenAppleCooldown[$player->getRawUniqueId()]);
+        return $time <= 10 && $time >= 0;
+    }
+
+    /**
+     * @param Player $player
+     * @return string
+     */
+    public function getGodAppleCooldown(Player $player): string
+    {
+        $time = 10800 - (time() - $this->godAppleCooldowns[$player->getRawUniqueId()]);
+        $hours = floor($time / 3600);
+        $minutes = floor(($time / 60) % 60);
+        $seconds = $time % 60;
+        return "$hours h, $minutes m, $seconds s";
+    }
+
+    /**
+     * @param Player $player
+     * @return int
+     */
+    public function getGoldenAppleCooldown(Player $player): int
+    {
+        return 10 - (time() - $this->goldenAppleCooldown[$player->getRawUniqueId()]);
     }
 }

@@ -10,6 +10,8 @@ class CombatManager {
 
     /** @var HCF */
     private $core;
+    /** @var CombatListener */
+    private $combatListener;
 
     /**
      * CombatManager constructor.
@@ -19,7 +21,7 @@ class CombatManager {
     public function __construct(HCF $core) {
         $this->core = $core;
         Entity::registerEntity(LogoutVillager::class, true);
-        $core->getServer()->getPluginManager()->registerEvents(new CombatListener($core), $core);
+        $core->getServer()->getPluginManager()->registerEvents($this->combatListener = new CombatListener($core), $core);
     }
 
     /**
@@ -28,5 +30,13 @@ class CombatManager {
     public function getCore(): HCF
     {
         return $this->core;
+    }
+
+    /**
+     * @return CombatListener
+     */
+    public function getCombatListener(): CombatListener
+    {
+        return $this->combatListener;
     }
 }

@@ -6,28 +6,27 @@ use hcf\HCF;
 use hcf\HCFPlayer;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
-use pocketmine\block\Block;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\SignChangeEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\item\Item;
 use pocketmine\tile\Sign;
 use pocketmine\utils\TextFormat;
 
-class ShopListener implements Listener {
+class ShopListener implements Listener
+{
 
     /** @var HCF */
     private $core;
-
-    /** @var Block[] */
-    private $queue = [];
 
     /**
      * ShopListener constructor.
      *
      * @param HCF $core
      */
-    public function __construct(HCF $core) {
+    public function __construct(HCF $core)
+    {
         $this->core = $core;
     }
 
@@ -35,21 +34,60 @@ class ShopListener implements Listener {
      * @priority NORMAL
      * @param SignChangeEvent $event
      *
-     * @throws TranslationException
+     * @throws ShopException
      */
-    public function onSignChange(SignChangeEvent $event): void {
+    public function onSignChange(SignChangeEvent $event): void
+    {
         $lines = $event->getLines();
-        if($lines[0] === "[shop]") {
+        if ($lines[0] === "[sell]" or $lines[0] === "[buy]") {
             $player = $event->getPlayer();
-            if(!$player->isOp()) {
+            if (!$player->isOp()) {
                 return;
             }
-            if($lines[1] === "sell" or $lines[1] === "buy") {
-                if(is_numeric($lines[2]) and is_numeric($lines[3])) {
-                    $this->queue[$player->getRawUniqueId()] = $event->getBlock();
-                    $player->sendMessage(Translation::getMessage("selectItemMakeShop"));
+            if ($lines[0] === "[buy]") {
+                $type = ShopSign::BUY;
+            } elseif ($lines[0] === "[sell]") {
+                $type = ShopSign::SELL;
+            }
+            if (!isset($type)) {
+                throw new ShopException("Invalid shop type!");
+            }
+            $item = null;
+            if (strpos($lines[1], ':')) {
+                $itemData = explode(':', $lines[1]);
+                $item = Item::get($itemData[0], $itemData[1]);
+            } else {
+                if (is_numeric($lines[1])) {
+                    $item = Item::get((int)$lines[1]);
                 }
             }
+            if (is_numeric($lines[2]) and is_numeric($lines[3])) {
+                if ($item instanceof Item) {
+                    $amount = (int)$lines[3];
+                    $item->setCount($amount);
+                    if ($type === ShopSign::BUY) {
+                        $line0 = TextFormat::GREEN . "[Buy]";
+                    }
+                    elseif ($type === ShopSign::SELL) {
+                        $line0 = TextFormat::RED . "[Sell]";
+                    } else {
+                        $line0 = TextFormat::DARK_RED . "Unknown";
+                    }
+                    $name = $item->getName();
+                    if (strlen($name) > 16) {
+                        $name = substr($name, 0, 16);
+                    }
+                    $line1 = TextFormat::BLACK . $name;
+                    if ($item->hasCustomName()) {
+                        $line1 = $item->getCustomName();
+                    }
+                    $line2 = TextFormat::BLACK . "$$lines[2]";
+                    $line3 = TextFormat::BLACK . $amount;
+                    $event->setLines([$line0, $line1, $line2, $line3]);
+                    $this->core->getShopManager()->addShopSign(new ShopSign($event->getBlock()->asPosition(), $item, $lines[2], $type));
+                }
+            }
+
         }
     }
 
@@ -57,57 +95,23 @@ class ShopListener implements Listener {
      * @priority NORMAL
      * @param PlayerInteractEvent $event
      *
-     * @throws ShopException
      * @throws TranslationException
      */
-    public function onPlayerInteract(PlayerInteractEvent $event): void {
+    public function onPlayerInteract(PlayerInteractEvent $event): void
+    {
         $player = $event->getPlayer();
         $block = $event->getBlock();
-        $item = $event->getItem();
         $tile = $player->getLevel()->getTile($block);
-        if(!$player instanceof HCFPlayer) {
+        if (!$player instanceof HCFPlayer) {
             return;
         }
-        if(isset($this->queue[$player->getRawUniqueId()])) {
-            if($block->equals($this->queue[$player->getRawUniqueId()])) {
-                if($tile instanceof Sign) {
-                    $lines = $tile->getText();
-                    if($lines[1] === "buy") {
-                        $type = ShopSign::BUY;
-                    }
-                    elseif($lines[1] === "sell") {
-                        $type = ShopSign::SELL;
-                    }
-                    if(!isset($type)) {
-                        throw new ShopException("Invalid shop type!");
-                    }
-                    $amount = (int)$lines[3];
-                    $item->setCount($amount);
-                    $line1 = TextFormat::GOLD . TextFormat::BOLD . ucfirst($lines[1]) . " Shop";
-                    $name = $item->getName();
-                    if(strlen($name) > 16) {
-                        $name = substr($name, 0, 16);
-                    }
-                    $line2 = TextFormat::WHITE . $name;
-                    if($item->hasCustomName()) {
-                        $line2 = $item->getCustomName();
-                    }
-                    $line3 = TextFormat::AQUA . "Price: " . TextFormat::WHITE . "$$lines[2]";
-                    $line4 = TextFormat::YELLOW . "Amount: " . TextFormat::WHITE . $amount;
-                    $tile->setText($line1, $line2, $line3, $line4);
-                    $this->core->getShopManager()->addShopSign(new ShopSign($block->asPosition(), $item, $lines[2], $type));
-                }
-            }
-            unset($this->queue[$player->getRawUniqueId()]);
-            return;
-        }
-        if($tile instanceof Sign) {
+        if ($tile instanceof Sign) {
             $shopSign = $this->core->getShopManager()->getShopSign($block->asPosition());
-            if($shopSign === null) {
+            if ($shopSign === null) {
                 return;
             }
-            if($shopSign->getType() === ShopSign::BUY) {
-                if($shopSign->getPrice() > $player->getBalance()) {
+            if ($shopSign->getType() === ShopSign::BUY) {
+                if ($shopSign->getPrice() > $player->getBalance()) {
                     $player->sendMessage(Translation::getMessage("notEnoughMoney"));
                     return;
                 }
@@ -118,9 +122,8 @@ class ShopListener implements Listener {
                 ]));
                 $player->getInventory()->addItem($shopSign->getItem());
                 $player->subtractFromBalance($shopSign->getPrice());
-            }
-            else {
-                if(!$player->getInventory()->contains($shopSign->getItem())) {
+            } else {
+                if (!$player->getInventory()->contains($shopSign->getItem())) {
                     $player->sendMessage(Translation::getMessage("sellItemNotFound"));
                     return;
                 }
@@ -143,16 +146,17 @@ class ShopListener implements Listener {
      *
      * @throws TranslationException
      */
-    public function onBlockBreak(BlockBreakEvent $event): void {
+    public function onBlockBreak(BlockBreakEvent $event): void
+    {
         $player = $event->getPlayer();
         $block = $event->getBlock();
         $tile = $block->getLevel()->getTile($block->asPosition());
-        if($tile instanceof Sign) {
+        if ($tile instanceof Sign) {
             $shopSign = $this->core->getShopManager()->getShopSign($block->asPosition());
-            if($shopSign === null) {
+            if ($shopSign === null) {
                 return;
             }
-            if(!$player->isOp()) {
+            if (!$player->isOp()) {
                 $event->setCancelled();
                 $player->sendMessage(Translation::getMessage("noPermission"));
                 return;

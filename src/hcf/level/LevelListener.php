@@ -30,6 +30,7 @@ use pocketmine\Player;
 use pocketmine\scheduler\Task;
 use pocketmine\tile\Tile;
 use pocketmine\utils\TextFormat;
+use ReflectionException;
 
 class LevelListener implements Listener
 {
@@ -95,6 +96,9 @@ class LevelListener implements Listener
         }
         $block = $event->getBlock();
         $player = $event->getPlayer();
+        if ($player->getLevel()->getFolderName() === "ender"){
+            $event->setCancelled();
+        }
         if ($player->hasEffect(28)){
             $event->setCancelled();
             return;
@@ -130,6 +134,9 @@ class LevelListener implements Listener
             return;
         }
         $player = $event->getPlayer();
+        if ($player->getLevel()->getFolderName() === "ender"){
+            $event->setCancelled();
+        }
         if ($player->hasEffect(28)){
             $event->setCancelled();
             return;
