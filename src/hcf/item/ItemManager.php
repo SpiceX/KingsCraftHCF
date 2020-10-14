@@ -12,11 +12,11 @@ use hcf\item\entity\EnderPearl;
 use hcf\item\entity\FireworksRocket;
 use hcf\item\entity\FishingHook;
 use hcf\item\entity\GrapplingHook;
+use hcf\item\task\NetheriteArmorEffect;
 use hcf\item\tool\NetheriteAxe;
 use hcf\item\tool\NetheriteHoe;
 use hcf\item\tool\NetheritePickaxe;
 use hcf\item\tool\NetheriteShovel;
-use hcf\item\tool\NetheriteSword;
 use hcf\item\types\GlassBottle;
 use hcf\item\types\SplashPotion;
 use hcf\item\types\TeleportationBall;
@@ -32,7 +32,8 @@ use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
 use pocketmine\Server;
 
-class ItemManager {
+class ItemManager
+{
 
     /** @var HCF */
     private $core;
@@ -42,9 +43,11 @@ class ItemManager {
      *
      * @param HCF $core
      */
-    public function __construct(HCF $core) {
+    public function __construct(HCF $core)
+    {
         $this->core = $core;
         $core->getServer()->getPluginManager()->registerEvents(new ItemListener($core), $core);
+        $core->getScheduler()->scheduleRepeatingTask(new NetheriteArmorEffect($core), 20);
         $this->init();
     }
 
@@ -61,7 +64,8 @@ class ItemManager {
                 /**
                  * @return int
                  */
-                public function getMaxDurability(): int {
+                public function getMaxDurability(): int
+                {
                     return parent::getMaxDurability() * 2;
                 }
             }, true
@@ -72,7 +76,8 @@ class ItemManager {
                 /**
                  * @return int
                  */
-                public function getMaxDurability(): int {
+                public function getMaxDurability(): int
+                {
                     return parent::getMaxDurability() * 2;
                 }
             }, true
@@ -83,7 +88,8 @@ class ItemManager {
                 /**
                  * @return int
                  */
-                public function getMaxDurability(): int {
+                public function getMaxDurability(): int
+                {
                     return parent::getMaxDurability() * 2;
                 }
             }, true
@@ -94,7 +100,8 @@ class ItemManager {
                 /**
                  * @return int
                  */
-                public function getMaxDurability(): int {
+                public function getMaxDurability(): int
+                {
                     return parent::getMaxDurability() * 2;
                 }
             }, true
@@ -122,13 +129,13 @@ class ItemManager {
         ItemFactory::registerItem(new NetheriteShovel(), true);
         //ItemFactory::registerItem(new NetheriteSword(), true);
         //ItemFactory::registerItem(new \hcf\item\EnderPearl(), true);
-        Item::initCreativeItems(); //will load firework rockets from pocketmine's resources folder
-        if(!Entity::registerEntity(FireworksRocket::class, false, ["FireworksRocket"])) {
+        Item::initCreativeItems();
+        if (!Entity::registerEntity(FireworksRocket::class, false, ["FireworksRocket"])) {
             Server::getInstance()->getLogger()->error("Failed to register FireworksRocket entity with savename 'FireworksRocket'");
         }
-        Entity::registerEntity(FishingHook::class,true);
-        Entity::registerEntity(Egg::class,true);
-        Entity::registerEntity(EnderPearl::class,true, ['EnderPearl']);
+        Entity::registerEntity(FishingHook::class, true);
+        Entity::registerEntity(Egg::class, true);
+        Entity::registerEntity(EnderPearl::class, true, ['EnderPearl']);
     }
 
     /**

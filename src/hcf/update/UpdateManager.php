@@ -162,6 +162,8 @@ class UpdateManager
                 }
             }
             $scoreboard->setScoreLine(12, "§7--------------------");
+            $scoreboard->setScoreLine(13, "§7play.kingsserver.net");
+            $scoreboard->setScoreLine(14, "§725618");
         }
     }
 }

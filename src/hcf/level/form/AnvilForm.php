@@ -5,6 +5,7 @@ namespace hcf\level\form;
 
 
 use hcf\HCFPlayer;
+use hcf\level\block\Anvil;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
 use libs\form\MenuForm;
@@ -68,22 +69,7 @@ class AnvilForm extends MenuForm
                     $player->sendMessage(Translation::getMessage("noPermission"));
                     return;
                 }
-                $inventory = [];
-                foreach ($player->getInventory()->getContents() as $item) {
-                    if ($item instanceof Durable){
-                        $player->getInventory()->removeItem($item);
-                        $item->setDamage(0);
-                        $inventory[] = $item;
-                    }
-                }
-                foreach ($inventory as $item) {
-                    if ($player->getInventory()->canAddItem($item)){
-                        $player->getInventory()->addItem($item);
-                    } else {
-                        $player->getLevel()->dropItem($player->asVector3(), $item);
-                    }
-                }
-                $player->sendMessage("§aAll your items in your inventory were repaired.");
+                Anvil::repairInventory($player);
                 break;
         }
     }

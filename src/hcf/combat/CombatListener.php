@@ -18,7 +18,9 @@ use pocketmine\block\Slab;
 use pocketmine\entity\Effect;
 use pocketmine\entity\EffectInstance;
 use pocketmine\entity\Entity;
+use pocketmine\entity\projectile\Arrow;
 use pocketmine\entity\projectile\EnderPearl;
+use pocketmine\event\entity\EntityDamageByChildEntityEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityTeleportEvent;
@@ -259,6 +261,26 @@ class CombatListener implements Listener
                 "amount" => TextFormat::GREEN . $player->getLives()
             ]));
             $this->core->getScheduler()->scheduleTask(new SetClassTask($player));
+        }
+    }
+
+    /**
+     * @param EntityDamageByChildEntityEvent $event
+     */
+    public function onEntityDamageByChildEntity(EntityDamageByChildEntityEvent $event)
+    {
+        $arrow = $event->getChild();
+        $entity = $event->getEntity();
+        if ($arrow instanceof Arrow && $entity instanceof Player) {
+            if ($entity->hasEffect(Effect::INVISIBILITY)) {
+                $entity->removeEffect(Effect::INVISIBILITY);
+            }
+            if ($entity->getDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_INVISIBLE)) {
+                $entity->setDataFlag(Entity::DATA_FLAGS, Entity::DATA_FLAG_INVISIBLE, false);
+            }
+            foreach ($this->core->getServer()->getOnlinePlayers() as $onlinePlayer) {
+                $onlinePlayer->showPlayer($entity);
+            }
         }
     }
 
