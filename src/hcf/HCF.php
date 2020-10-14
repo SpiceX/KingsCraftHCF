@@ -9,6 +9,7 @@ use hcf\combat\CombatManager;
 use hcf\command\CommandManager;
 use hcf\crate\CrateManager;
 use hcf\discord\Logger;
+use hcf\enchant\CustomEnchantManager;
 use hcf\entity\EntityManager;
 use hcf\faction\FactionManager;
 use hcf\groups\GroupManager;
@@ -54,78 +55,56 @@ class HCF extends PluginBase
 
     /** @var BigEndianNBTStream */
     public static $nbtWriter;
-
     /** @var MySQLProvider */
     private $provider;
-
     /** @var LevelManager */
     private $levelManager;
-
     /** @var GroupManager */
     private $groupManager;
-
     /** @var CommandManager */
     private $commandManager;
-
     /** @var ShopManager */
     private $shopManager;
-
     /** @var AreaManager */
     private $areaManager;
-
     /** @var RoadManager */
     private $roadManager;
-
     /** @var UpdateManager */
     private $updateManager;
-
     /** @var CombatManager */
     private $combatManager;
-
     /** @var EntityManager */
     private $entityManager;
-
     /** @var AnnouncementManager */
     private $announcementManager;
-
     /** @var FactionManager */
     private $factionManager;
-
     /** @var ItemManager */
     private $itemManager;
-
     //   /** @var NetworkManager */
     //  private $networkManager;
-
     /** @var KitManager */
     private $kitManager;
-
     /** @var CrateManager */
     private $crateManager;
-
     /** @var WatchdogManager */
     private $watchdogManager;
-
     /** @var KOTHManager */
     private $kothManager;
-
     /** @var WayPointManager */
     private $wayPointManager;
-
     /** @var bool */
     private $eotw = false;
-
     /** @var int */
     private $sotw = 0;
-
     /** @var self */
     private static $instance;
-
     /** @var YamlProvider */
     private $yamlProvider;
-
     /** @var CpsCounter */
     private $cpsCounter;
+    /** @var CustomEnchantManager */
+    private $enchantmentManager;
 
     public function onLoad(): void
     {
@@ -166,6 +145,7 @@ class HCF extends PluginBase
         $this->watchdogManager = new WatchdogManager($this);
         $this->kothManager = new KOTHManager($this);
         $this->wayPointManager = new WayPointManager($this);
+        $this->enchantmentManager = new CustomEnchantManager($this);
         $this->getServer()->getPluginManager()->registerEvents(new HCFListener($this), $this);
         $this->getServer()->getPluginManager()->registerEvents(new Logger($this), $this);
         Effect::registerEffect(new Effect(28,'%potion.badOmen',new Color(0xce, 0xff, 0xff),true,120000, false));
@@ -469,5 +449,13 @@ class HCF extends PluginBase
     public function getCpsCounter(): CpsCounter
     {
         return $this->cpsCounter;
+    }
+
+    /**
+     * @return CustomEnchantManager
+     */
+    public function getEnchantmentManager(): CustomEnchantManager
+    {
+        return $this->enchantmentManager;
     }
 }
