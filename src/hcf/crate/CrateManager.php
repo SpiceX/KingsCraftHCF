@@ -4,6 +4,7 @@ namespace hcf\crate;
 
 use hcf\crate\types\CommonCrate;
 use hcf\crate\types\LegendaryCrate;
+use hcf\crate\types\PortatilCrate;
 use hcf\crate\types\RewardCrate;
 use hcf\crate\types\SpecialCrate;
 use hcf\crate\types\UncommonCrate;
@@ -20,6 +21,9 @@ class CrateManager
 
     /** @var Crate[] */
     private $crates = [];
+
+    /** @var PortatilCrate[] */
+    private $portatilCrates = [];
 
     /**
      * CrateManager constructor.
@@ -69,6 +73,14 @@ class CrateManager
             $file = fopen($crateFile, 'rb');
             $items = HCF::decodeInventory(fread($file, filesize($crateFile)));
             $this->crateParser(basename($crateFile, ".cct"), $items);
+            fclose($file);
+        }
+        foreach (glob(HCF::getInstance()->getDataFolder() . "crates" . DIRECTORY_SEPARATOR . "*.pct") as $crateFile) {
+            $file = fopen($crateFile, 'rb');
+            $items = HCF::decodeInventory(fread($file, filesize($crateFile)));
+            $portatilCrate = new PortatilCrate(basename($crateFile, '.pct'));
+            $portatilCrate->rewardsFromItemList($items);
+            $this->addPortatilCrate($portatilCrate);
             fclose($file);
         }
     }
@@ -135,10 +147,55 @@ class CrateManager
     }
 
     /**
+     * @param string $identifier
+     *
+     * @return PortatilCrate|null
+     */
+    public function getPortatilCrate(string $identifier): ?PortatilCrate
+    {
+        return $this->portatilCrates[$identifier] ?? null;
+    }
+
+    /**
      * @param Crate $crate
      */
     public function addCrate(Crate $crate): void
     {
-        $this->crates[$crate->getName()] = $crate;
+        $this->crates[$crate->getCustomName()] = $crate;
+    }
+
+    /**
+     * @param PortatilCrate $crate
+     */
+    public function addPortatilCrate(PortatilCrate $crate): void
+    {
+        $this->portatilCrates[$crate->getCustomName()] = $crate;
+    }
+
+    /**
+     * @param Player $player
+     * @param string $name
+     * @param bool $save
+     * @return PortatilCrate
+     */
+    public function createPortatilCrate(Player $player, string $name, bool $save = false): PortatilCrate
+    {
+        $portableCrate = new PortatilCrate($name);
+        $portableCrate->exchangeInventory($player);
+
+        if ($save) {
+            $portableCrate->saveRewardsToNBT();
+        }
+
+        $this->addPortatilCrate($portableCrate);
+        return $portableCrate;
+    }
+
+    /**
+     * @return PortatilCrate[]
+     */
+    public function getPortatilCrates(): array
+    {
+        return $this->portatilCrates;
     }
 }

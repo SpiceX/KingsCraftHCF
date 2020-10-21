@@ -17,14 +17,14 @@ class CrateKey extends CustomItem {
      * @param Crate $crate
      */
     public function __construct(Crate $crate) {
-        $customName = TextFormat::RESET . TextFormat::RED . TextFormat::BOLD . $crate->getName() . " Key";
+        $customName = TextFormat::RESET . TextFormat::RED . TextFormat::BOLD . $crate->getCustomName() . " Key";
         $lore = [];
         $lore[] = "";
-        $lore[] = TextFormat::RESET . TextFormat::GRAY . "Tap the {$crate->getName()} Crate to receive rewards.";
+        $lore[] = TextFormat::RESET . TextFormat::GRAY . "Tap the {$crate->getCustomName()} Crate to receive rewards.";
         $this->setNamedTagEntry(new CompoundTag(self::CUSTOM));
         /** @var CompoundTag $tag */
         $tag = $this->getNamedTagEntry(self::CUSTOM);
-        $tag->setString(self::CRATE, $crate->getName());
+        $tag->setString(self::CRATE, $crate->getCustomName());
         parent::__construct(self::TRIPWIRE_HOOK, $customName, $lore);
     }
 

@@ -46,7 +46,7 @@ class KeyAllCommand extends Command {
             $this->getCore()->getServer()->broadcastMessage(Translation::getMessage("keyAll", [
                 "name" => TextFormat::AQUA . $sender->getName(),
                 "amount" => TextFormat::YELLOW . $amount,
-                "type" => TextFormat::GRAY . $crate->getName()
+                "type" => TextFormat::GRAY . $crate->getCustomName()
             ]));
             return;
         }

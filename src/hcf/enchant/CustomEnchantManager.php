@@ -4,6 +4,8 @@
 namespace hcf\enchant;
 
 
+use hcf\enchant\task\TickEnchantmentsTask;
+use hcf\enchant\types\boots\SpeedEnchant;
 use hcf\HCF;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\utils\Config;
@@ -29,7 +31,8 @@ class CustomEnchantManager
         $this->init();
     }
 
-    public function init(){
+    public function init()
+    {
         $vanillaEnchantments = new SplFixedArray(1024);
 
         $property = new ReflectionProperty(Enchantment::class, "enchantments");
@@ -38,6 +41,9 @@ class CustomEnchantManager
             $vanillaEnchantments[$key] = $value;
         }
         $property->setValue($vanillaEnchantments);
+        $this->plugin->getScheduler()->scheduleRepeatingTask(new TickEnchantmentsTask($this->plugin), 1);
+
+        self::registerEnchantment(new SpeedEnchant($this->plugin, CustomEnchantmentIds::SPEED));
     }
 
     public static function registerEnchantment(CustomEnchant $enchant): void

@@ -57,7 +57,7 @@ class UpdateManager
             $scoreboard = $player->getScoreboard();
             if (!$scoreboard->isSpawned()) {
                 $scoreboard->spawn($this->core->getConfig()->get('scoreboard_title', '§9§lKings§fHCF'));
-                $scoreboard->setScoreLine(1, "§7---------------------");
+                $scoreboard->setScoreLine(1, "§7----------------");
                 $scoreboard->setScoreLine(2, TextFormat::YELLOW . " Direction: " . TextFormat::RESET . TextFormat::WHITE . Utils::getCompassDirection($player->getYaw() - 90));
                 $time = (30 - (time() - $player->getCombatTagTime())) > 0 ? 30 - (time() - $player->getCombatTagTime()) : 0;
                 if ($time > 0) {
@@ -161,7 +161,7 @@ class UpdateManager
                     $scoreboard->removeLine(11);
                 }
             }
-            $scoreboard->setScoreLine(12, "§7--------------------");
+            $scoreboard->setScoreLine(12, "§7----------------");
             $scoreboard->setScoreLine(13, "§7play.kingsserver.net");
             $scoreboard->setScoreLine(14, "§725618");
         }

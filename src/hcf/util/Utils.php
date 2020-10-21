@@ -5,6 +5,7 @@ namespace hcf\util;
 
 
 use hcf\enchant\CustomEnchant;
+use pocketmine\item\Item;
 use pocketmine\math\Vector3;
 use pocketmine\utils\TextFormat;
 
@@ -37,17 +38,70 @@ class Utils
         CustomEnchant::RARITY_MYTHIC => "Mythic"
     ];
 
+    public static function getColorFromRarity(int $rarity): string
+    {
+        $rarityColors = [
+            'common' => 'yellow',
+            'uncommon' => 'blue',
+            'rare' => 'gold',
+            'mythic' => 'light_purple',
+        ];
+        return self::getTFConstFromString($rarityColors[strtolower(self::RARITY_NAMES[$rarity])]);
+    }
+
+    public static function getTFConstFromString(string $color): string
+    {
+        $colorConversionTable = [
+            "BLACK" => TextFormat::BLACK,
+            "DARK_BLUE" => TextFormat::DARK_BLUE,
+            "DARK_GREEN" => TextFormat::DARK_GREEN,
+            "DARK_AQUA" => TextFormat::DARK_AQUA,
+            "DARK_RED" => TextFormat::DARK_RED,
+            "DARK_PURPLE" => TextFormat::DARK_PURPLE,
+            "GOLD" => TextFormat::GOLD,
+            "GRAY" => TextFormat::GRAY,
+            "DARK_GRAY" => TextFormat::DARK_GRAY,
+            "BLUE" => TextFormat::BLUE,
+            "GREEN" => TextFormat::GREEN,
+            "AQUA" => TextFormat::AQUA,
+            "RED" => TextFormat::RED,
+            "LIGHT_PURPLE" => TextFormat::LIGHT_PURPLE,
+            "YELLOW" => TextFormat::YELLOW,
+            "WHITE" => TextFormat::WHITE
+        ];
+        return $colorConversionTable[strtoupper($color)] ?? TextFormat::GRAY;
+    }
+
+    public static function isHelmet(Item $item): bool
+    {
+        return in_array($item->getId(), [Item::LEATHER_CAP, Item::CHAIN_HELMET, Item::IRON_HELMET, Item::GOLD_HELMET, Item::DIAMOND_HELMET]);
+    }
+
+    public static function isChestplate(Item $item): bool
+    {
+        return in_array($item->getId(), [Item::LEATHER_TUNIC, Item::CHAIN_CHESTPLATE, Item::IRON_CHESTPLATE, Item::GOLD_CHESTPLATE, Item::DIAMOND_CHESTPLATE, Item::ELYTRA]);
+    }
+
+    public static function isLeggings(Item $item): bool
+    {
+        return in_array($item->getId(), [Item::LEATHER_PANTS, Item::CHAIN_LEGGINGS, Item::IRON_LEGGINGS, Item::GOLD_LEGGINGS, Item::DIAMOND_LEGGINGS]);
+    }
+
+    public static function isBoots(Item $item): bool
+    {
+        return in_array($item->getId(), [Item::LEATHER_BOOTS, Item::CHAIN_BOOTS, Item::IRON_BOOTS, Item::GOLD_BOOTS, Item::DIAMOND_BOOTS]);
+    }
 
     public static function toThin(string $string): string
     {
         return preg_replace("/%*(([a-z0-9_]+\.)+[a-z0-9_]+)/i", "%$1", $string) . self::THIN_TAG;
     }
 
-    public static function getRandomVector() : Vector3
+    public static function getRandomVector(): Vector3
     {
-        $x = mt_rand()/mt_getrandmax() * 2 - 1;
-        $y = mt_rand()/mt_getrandmax() * 2 - 1;
-        $z = mt_rand()/mt_getrandmax() * 2 - 1;
+        $x = mt_rand() / mt_getrandmax() * 2 - 1;
+        $y = mt_rand() / mt_getrandmax() * 2 - 1;
+        $z = mt_rand() / mt_getrandmax() * 2 - 1;
         $v = new Vector3($x, $y, $z);
         return $v->normalize();
     }

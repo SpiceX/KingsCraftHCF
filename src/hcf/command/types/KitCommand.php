@@ -4,9 +4,11 @@ namespace hcf\command\types;
 
 use hcf\HCF;
 use hcf\HCFPlayer;
+use hcf\kit\Kit;
 use hcf\kit\task\SetClassTask;
 use hcf\translation\Translation;
 use hcf\translation\TranslationException;
+use muqsit\invmenu\inventory\InvMenuInventory;
 use muqsit\invmenu\InvMenu;
 use PDO;
 use pocketmine\command\Command;
@@ -45,8 +47,15 @@ class KitCommand extends Command
             $menu = InvMenu::create(InvMenu::TYPE_CHEST);
             $menu->setName("§9Kings§fHCF §7Kits");
             $menu->readonly(true);
-            foreach (HCF::getInstance()->getKitManager()->getKits() as $kit) {
-                $menu->getInventory()->addItem((Item::get(Item::CHEST_MINECART)->setCustomName($kit->getName())));
+            $kits = HCF::getInstance()->getKitManager()->getKits();
+            foreach ($kits as $kit) {
+                for ($x = 0, $maxX = count($kits); $x <= $maxX; $x++) {
+                    if (count($menu->getInventory()->getContents()) < $maxX){
+                        if (rand(1, 3) == 1) {
+                            $menu->getInventory()->setItem($x, Item::get($this->getRandomItem())->setCustomName($kit->getName()));
+                        }
+                    }
+                }
             }
             $menu->setListener(
                 function (Player $player, Item $itemClicked, Item $itemClickedWith, SlotChangeAction $action) use ($menu): bool {
@@ -122,7 +131,8 @@ class KitCommand extends Command
         $stmt->bindParam(":uuid", $uuid);
         $stmt->execute();
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $cooldown = $row['cooldown'];
+            var_dump($row);
+            $cooldown = $row[$lowercaseName];
             $cooldown = $kit->getCooldown() - ($time - $cooldown);
             if ($cooldown > 0) {
                 $days = floor($cooldown / 86400);
@@ -184,5 +194,26 @@ class KitCommand extends Command
         $stmt->execute();
         $stmt->closeCursor();
         HCF::getInstance()->getScheduler()->scheduleDelayedTask(new SetClassTask($player), 1);
+    }
+
+    private function getRandomItem()
+    {
+        $items = [
+            Item::ENDER_EYE,
+            Item::CHEST_MINECART,
+            Item::WATERLILY,
+            Item::CLOCK,
+            Item::APPLE,
+            Item::NETHER_STAR,
+            Item::GLISTERING_MELON,
+            Item::REDSTONE,
+            Item::DIAMOND_PICKAXE,
+            Item::TRIDENT,
+            Item::ENDER_CHEST,
+            Item::APPLE_ENCHANTED,
+            Item::BEACON,
+            Item::BEEF
+        ];
+        return $items[array_rand($items)];
     }
 }

@@ -44,12 +44,12 @@ class TeleportHomeTask extends Task {
         $home = $this->player->getFaction()->getHome();
         if($this->player->getFloorX() !== $this->position->getFloorX() or $this->player->getFloorY() !== $this->position->getFloorY() or $this->player->getFloorZ() !== $this->position->getFloorZ()) {
             $this->player->setTeleporting(false);
-            $this->player->sendTitle(TextFormat::DARK_RED . "Failed to teleport", TextFormat::GRAY . "You must stand still!");
+            $this->player->sendPopup(TextFormat::DARK_RED . "Failed to teleport\n" . TextFormat::GRAY . "You must stand still!");
             HCF::getInstance()->getScheduler()->cancelTask($this->getTaskId());
             return;
         }
         if($this->time >= 0) {
-            $this->player->sendTitle(TextFormat::DARK_GREEN . "Teleporting in", TextFormat::GRAY . "$this->time seconds" . str_repeat(".", ($this->maxTime - $this->time) % 4));
+            $this->player->sendPopup(TextFormat::DARK_GREEN . "Teleporting in\n" . TextFormat::GRAY . "$this->time seconds" . str_repeat(".", ($this->maxTime - $this->time) % 4));
             $this->time--;
             return;
         }
@@ -58,6 +58,5 @@ class TeleportHomeTask extends Task {
         $this->player->getLevel()->addSound(new EndermanTeleportSound($this->player));
         $this->player->setTeleporting(false);
         HCF::getInstance()->getScheduler()->cancelTask($this->getTaskId());
-        return;
     }
 }

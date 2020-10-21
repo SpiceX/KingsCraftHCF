@@ -126,6 +126,7 @@ class HCF extends PluginBase
         $this->provider = new MySQLProvider($this);
         $this->yamlProvider = new YamlProvider($this);
         $this->levelManager = new LevelManager($this);
+        //$this->enchantmentManager = new CustomEnchantManager($this);
         $this->groupManager = new GroupManager($this);
         $this->commandManager = new CommandManager($this);
         $this->shopManager = new ShopManager($this);
@@ -145,7 +146,6 @@ class HCF extends PluginBase
         $this->watchdogManager = new WatchdogManager($this);
         $this->kothManager = new KOTHManager($this);
         $this->wayPointManager = new WayPointManager($this);
-        $this->enchantmentManager = new CustomEnchantManager($this);
         $this->getServer()->getPluginManager()->registerEvents(new HCFListener($this), $this);
         $this->getServer()->getPluginManager()->registerEvents(new Logger($this), $this);
         Effect::registerEffect(new Effect(28,'%potion.badOmen',new Color(0xce, 0xff, 0xff),true,120000, false));
@@ -267,7 +267,6 @@ class HCF extends PluginBase
         if (!$tag instanceof CompoundTag) {
             throw new PluginException("Expected a CompoundTag, got " . get_class($tag));
         }
-
         $content = [];
         /** @var CompoundTag $item */
         foreach ($tag->getListTag("Items")->getValue() as $item) {

@@ -29,6 +29,7 @@ use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\ItemDespawnEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\item\Egg;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\EnderPearl;
 use pocketmine\item\Item;
@@ -103,6 +104,9 @@ class ItemListener implements Listener
         if ($item instanceof Fireworks && $player->hasFireworksCooldown) {
             $event->setCancelled();
         }
+        if ($item instanceof Egg && $player->hasEggCooldown) {
+            $event->setCancelled();
+        }
         if ($item instanceof InvisibilitySak && $player->hasInvisibilitySakCooldown) {
             $event->setCancelled();
         }
@@ -125,14 +129,14 @@ class ItemListener implements Listener
             return;
         }
         if ($player->isClaiming()) {
-            if ($item->getId() !== Item::STICK) {
+            if ($item->getId() !== Item::GOLDEN_HOE) {
                 return;
             }
             if ($player->getFaction() === null || $player->getFactionRole() !== Faction::LEADER) {
                 $player->setClaiming(false);
                 $player->setFirstClaimingPosition($player->getFirstClaimPosition());
                 $player->setSecondClaimingPosition($player->getSecondClaimPosition());
-                $player->getInventory()->remove(Item::get(Item::STICK));
+                $player->getInventory()->remove(Item::get(Item::GOLD_HOE));
                 return;
             }
             if (abs($player->getX()) <= HCF::EDIT && abs($player->getZ()) <= HCF::EDIT) {
@@ -145,7 +149,7 @@ class ItemListener implements Listener
                         $player->setClaiming(false);
                         $player->setFirstClaimingPosition($area->getFirstPosition());
                         $player->setSecondClaimingPosition($area->getSecondPosition());
-                        $player->getInventory()->remove(Item::get(Item::STICK));
+                        $player->getInventory()->remove(Item::get(Item::GOLDEN_HOE));
                         $player->sendMessage(Translation::getMessage("noPermission"));
                         return;
                     }
@@ -160,7 +164,7 @@ class ItemListener implements Listener
                         $player->setClaiming(false);
                         $player->setFirstClaimingPosition($area->getFirstPosition());
                         $player->setSecondClaimingPosition($area->getSecondPosition());
-                        $player->getInventory()->remove(Item::get(Item::STICK));
+                        $player->getInventory()->remove(Item::get(Item::GOLD_HOE));
                         $player->sendMessage(Translation::getMessage("noPermission"));
                         return;
                     }
@@ -184,7 +188,7 @@ class ItemListener implements Listener
                     $player->setClaiming(false);
                     $player->setFirstClaimingPosition($firstPosition);
                     $player->setSecondClaimingPosition($secondPosition);
-                    $player->getInventory()->remove(Item::get(Item::STICK));
+                    $player->getInventory()->remove(Item::get(Item::GOLDEN_HOE));
                     return;
                 }
                 $amount = $length * $width;
@@ -199,14 +203,14 @@ class ItemListener implements Listener
                     $player->setClaiming(false);
                     $player->setFirstClaimingPosition($firstPosition);
                     $player->setSecondClaimingPosition($secondPosition);
-                    $player->getInventory()->remove(Item::get(Item::STICK));
+                    $player->getInventory()->remove(Item::get(Item::GOLD_HOE));
                     $player->sendMessage(Translation::getMessage("overrideClaim"));
                     foreach ($this->core->getAreaManager()->getAreas() as $area) {
                         if ($claim->intersectsWith($area->getFirstPosition(), $area->getSecondPosition())) {
                             $player->setClaiming(false);
                             $player->setFirstClaimingPosition($area->getFirstPosition());
                             $player->setSecondClaimingPosition($area->getSecondPosition());
-                            $player->getInventory()->remove(Item::get(Item::STICK));
+                            $player->getInventory()->remove(Item::get(Item::GOLDEN_HOE));
                             $player->sendMessage(Translation::getMessage("noPermission"));
                             return;
                         }
@@ -221,7 +225,7 @@ class ItemListener implements Listener
                     $player->setClaiming(false);
                     $player->setFirstClaimingPosition($firstPosition);
                     $player->setSecondClaimingPosition($secondPosition);
-                    $player->getInventory()->remove(Item::get(Item::STICK));
+                    $player->getInventory()->remove(Item::get(Item::GOLD_HOE));
                     return;
                 }
 

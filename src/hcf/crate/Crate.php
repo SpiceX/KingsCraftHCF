@@ -20,6 +20,7 @@ abstract class Crate
     public const LEGENDARY = "Legendary";
     public const UNKNOWN = "Unknown";
     public const SPECIAL = "Special";
+    public const PORTATIL = "Portatil";
 
     /** @var string */
     private $name;
@@ -89,7 +90,7 @@ abstract class Crate
     /**
      * @return string
      */
-    public function getName(): string
+    public function getCustomName(): string
     {
         return $this->name;
     }
@@ -143,7 +144,7 @@ abstract class Crate
             $items[] = $reward->getItem();
         }
         $encoded = HCF::encodeItemList($items);
-        $cratePath = $this->getPlugin()->getDataFolder() . 'crates' . DIRECTORY_SEPARATOR . "{$this->getName()}.cct";
+        $cratePath = $this->getPlugin()->getDataFolder() . 'crates' . DIRECTORY_SEPARATOR . "{$this->getCustomName()}.cct";
         $crateFile = @fopen($cratePath, 'wb') or die("Unable to open crate file!");
         @fwrite($crateFile, $encoded);
         @fclose($crateFile);

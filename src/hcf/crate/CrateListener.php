@@ -13,6 +13,7 @@ use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\item\Item;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\StringTag;
 
 class CrateListener implements Listener
 {
@@ -58,7 +59,23 @@ class CrateListener implements Listener
         }
         $value = false;
         $block = $event->getBlock();
+        $item = $event->getItem();
         $currentCrate = null;
+        if ($item->getNamedTag()->hasTag("Crate")) {
+            $player->sendMessage("§a[CRATES] Portatil Crate {$item->getName()} obtained!");
+            $player->getInventory()->setItemInHand(Item::get(Item::AIR));
+            $rewardsTag = $item->getNamedTag()->getTagValue("Items", StringTag::class);
+            $rewards = HCF::decodeInventory($rewardsTag);
+            foreach ($rewards as $item) {
+                if ($player->getInventory()->canAddItem($item)) {
+                    $player->getInventory()->addItem($item);
+                } else {
+                    $player->getLevel()->dropItem($player->asVector3(), $item);
+                }
+            }
+            $event->setCancelled();
+            return;
+        }
         foreach ($this->core->getCrateManager()->getCrates() as $crate) {
             if ($crate->getPosition()->equals($block)) {
                 $event->setCancelled();

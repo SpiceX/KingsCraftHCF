@@ -43,6 +43,9 @@ class HCFPlayer extends Player
     public $antiTrapperCooldown = false;
 
     /** @var bool */
+    public $hasEggCooldown = false;
+
+    /** @var bool */
     public $hasAntiTrapperEffect = false;
 
     /** @var bool */

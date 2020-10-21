@@ -45,8 +45,8 @@ class ClaimSubCommand extends SubCommand {
             $sender->sendMessage(Translation::getMessage("mustUnclaimCurrentClaim"));
             return;
         }
-        $item = Item::get(Item::STICK, 0, 1);
-        $item->setCustomName(TextFormat::RESET . TextFormat::GOLD . TextFormat::BOLD . "Claiming Stick");
+        $item = Item::get(Item::GOLD_HOE, 0, 1);
+        $item->setCustomName(TextFormat::RESET . TextFormat::GOLD . TextFormat::BOLD . "Claiming Hoe");
         $item->setLore([
             "",
             TextFormat::RESET . TextFormat::GRAY . "Use this stick to select your first and second claiming position.",

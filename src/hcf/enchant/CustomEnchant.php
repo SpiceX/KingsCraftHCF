@@ -65,7 +65,7 @@ class CustomEnchant extends Enchantment
     public function __construct(HCF $plugin, int $id)
     {
         $this->plugin = $plugin;
-        $this->rarity = (int)array_flip(Utils::RARITY_NAMES)[ucfirst(strtolower($plugin->getEnchantmentManager()->getEnchantmentData($this->name, "rarities", Utils::RARITY_NAMES[$this->rarity])))];
+        $this->rarity = (int)array_flip(Utils::RARITY_NAMES)[ucfirst(strtolower(HCF::getInstance()->getEnchantmentManager()->getEnchantmentData($this->name, "rarities", Utils::RARITY_NAMES[$this->rarity])))];
         $this->maxLevel = (int)$plugin->getEnchantmentManager()->getEnchantmentData($this->name, "max_levels", $this->maxLevel);
         $this->displayName = (string)$plugin->getEnchantmentManager()->getEnchantmentData($this->name, "display_names", $this->displayName ?? $this->name);
         $this->description = (string)$plugin->getEnchantmentManager()->getEnchantmentData($this->name, "descriptions", $this->description ?? "");
